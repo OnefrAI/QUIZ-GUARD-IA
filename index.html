@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GUARD-IA | Mobile Training</title>
+    <title>GUARD-IA | Quiz IA</title>
+    <meta name="description" content="Pon a prueba lo que sabes de Inteligencia Artificial. 6 niveles, a tu ritmo, cada respuesta te explica el porqué.">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta property="og:title" content="QUIZ GUARD-IA — ¿Cuánto sabes de IA?">
+    <meta property="og:description" content="6 niveles de menos a más: mitos, ¿IA o humano?, caza la alucinación, prompting... Cada respuesta te enseña el porqué.">
+    <meta property="og:image" content="https://onefrai.github.io/QUIZ-GUARD-IA/logo.png">
+    <meta property="og:type" content="website">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0; padding: 0; background-color: #000; color: #00ff41;
@@ -15,17 +21,19 @@
         }
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; }
         .glass-panel { background: rgba(0, 15, 0, 0.9); border: 1px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); backdrop-filter: blur(8px); }
-        .matrix-btn { background: transparent; border: 1px solid #00ff41; transition: all 0.2s ease; position: relative; overflow: hidden; touch-action: manipulation; }
+        .matrix-btn { background: transparent; border: 1px solid #00ff41; transition: all 0.15s ease; position: relative; overflow: hidden; touch-action: manipulation; color: #00ff41; }
         .matrix-btn:active:not(:disabled) { background: #00ff41; color: #000; }
         @media (min-width: 768px) { .matrix-btn:hover:not(:disabled) { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; } }
-        .matrix-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #005500; }
+        .matrix-btn:disabled { cursor: not-allowed; }
         .glow-text { text-shadow: 0 0 8px #00ff41; }
         .progress-bar { height: 6px; background: #002200; width: 100%; border-radius: 3px; }
         .progress-fill { height: 100%; background: #00ff41; box-shadow: 0 0 10px #00ff41; transition: width 0.4s ease; border-radius: 3px; }
         .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: rgba(0, 255, 65, 0.05); animation: scan 10s linear infinite; z-index: 10; pointer-events: none; }
         @keyframes scan { 0% { transform: translateY(-100vh); } 100% { transform: translateY(100vh); } }
-        .content-scroll { max-height: 70vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #00ff41 transparent; }
-        
+        .content-scroll { max-height: 66vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #00ff41 transparent; }
+        .content-scroll::-webkit-scrollbar { width: 5px; }
+        .content-scroll::-webkit-scrollbar-thumb { background: #00ff41; border-radius: 3px; }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
@@ -38,440 +46,484 @@
             100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); border-color: #00ff41; }
         }
         .flash-red { animation: flash 0.6s ease-out; }
-        
-        @keyframes pulse-red {
-            0%, 100% { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
-            50% { color: #fff; text-shadow: 0 0 15px #ff0000; }
+        @keyframes fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fade-up 0.35s ease-out both; }
+        @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+        .pop { animation: pop 0.4s ease-out both; }
+
+        .opt-correct { background: rgba(0,255,65,0.25) !important; border-color: #00ff41 !important; border-width: 2px !important; color: #eaffea !important; }
+        .opt-wrong { background: rgba(255,0,0,0.25) !important; border-color: #ff0000 !important; color: #ffdede !important; }
+        .explain-box { background: rgba(255,196,0,0.10); border-left: 3px solid #ffc400; color: #ffe6a3; box-shadow: 0 0 12px rgba(255,196,0,0.15); }
+
+        /* ---- Ruta de niveles ---- */
+        .node { border: 1px solid #005522; transition: all 0.15s ease; touch-action: manipulation; }
+        .node.done { border-color: #00aa33; }
+        .node.current { border-color: #00ff41; box-shadow: 0 0 14px rgba(0,255,65,0.35); }
+        .node.locked { opacity: 0.4; }
+        @media (min-width: 768px) { .node:not(.locked):hover { background: rgba(0,255,65,0.08); } }
+        .node-num { min-width: 2.6rem; }
+
+        /* ---- Toque ochentero / arcade ---- */
+        .pixel { font-family: 'Press Start 2P', monospace; line-height: 1.5; }
+        /* Logo arcade con glitch RGB sutil */
+        .arcade-title { font-family: 'Press Start 2P', monospace; color: #00ff41; }
+        .arcade-title .l2 { display:block; font-size: clamp(1.05rem, 6vw, 2rem); letter-spacing: 1px; text-shadow: 0 0 10px #00ff41; animation: glitch 3.5s infinite steps(1); }
+        @keyframes glitch {
+            0%, 92%, 100% { text-shadow: 0 0 10px #00ff41; transform: translate(0,0); }
+            93% { text-shadow: -2px 0 #ff00d4, 2px 0 #00e5ff, 0 0 10px #00ff41; transform: translate(1px,-1px); }
+            95% { text-shadow: 2px 0 #ff00d4, -2px 0 #00e5ff, 0 0 10px #00ff41; transform: translate(-1px,1px); }
+            97% { text-shadow: 0 0 10px #00ff41; transform: translate(0,0); }
         }
-        .timer-warning { animation: pulse-red 1s infinite; font-weight: bold; }
+        /* Rejilla synthwave al fondo del panel */
+        .grid-floor {
+            position: absolute; left:0; right:0; bottom:0; height: 90px; z-index:0; pointer-events:none; overflow:hidden; border-radius: 0 0 0.75rem 0.75rem; opacity:0.5;
+            background-image: linear-gradient(rgba(0,255,65,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,65,0.35) 1px, transparent 1px);
+            background-size: 26px 26px; transform: perspective(180px) rotateX(62deg); transform-origin: bottom;
+            -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+        }
+        /* Overlay CRT: líneas de tubo + viñeta + parpadeo tenue */
+        .crt-overlay { position: fixed; inset: 0; z-index: 8; pointer-events: none;
+            background:
+              repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 2px, rgba(0,15,0,0.28) 3px, rgba(0,0,0,0) 4px),
+              radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,0.5) 100%);
+            animation: flicker 5s infinite steps(1); }
+        @keyframes flicker { 0%,96%{opacity:0.9} 97%{opacity:0.72} 98%{opacity:1} 99%{opacity:0.8} 100%{opacity:0.92} }
+        /* ---- Casco pixel-art ---- */
+        .helmet { display:block; width: clamp(84px, 22vw, 132px); height:auto; margin: 0 auto 4px; filter: drop-shadow(0 0 10px rgba(57,255,20,0.55)); animation: bob 3.5s ease-in-out infinite; }
+        @keyframes bob { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-3px); } }
+        .coin { font-family:'Press Start 2P', monospace; font-size: clamp(0.45rem, 2.4vw, 0.65rem); letter-spacing: 2px; opacity: 0.8; display:inline-block; margin-top: 8px; }
+        .blink { animation: blink 1.3s steps(1) infinite; }
+        @keyframes blink { 50% { opacity: 0.12; } }
+        @media (prefers-reduced-motion: reduce) { .l2, .crt-overlay, .helmet, .blink { animation: none !important; } }
     </style>
 </head>
 <body class="flex items-center justify-center p-3 sm:p-6">
     <canvas id="matrix-canvas"></canvas>
     <div class="scanline"></div>
+    <div class="crt-overlay"></div>
 
-    <div id="game-container" class="w-full max-w-xl glass-panel p-4 sm:p-8 rounded-xl relative">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl sm:text-3xl font-bold glow-text tracking-tighter">SISTEMA <span class="bg-green-900 px-2">GUARD-IA</span></h1>
-            <p class="text-[10px] sm:text-xs mt-1 opacity-60 uppercase tracking-widest">Protocolo de Entrenamiento Móvil</p>
+    <div id="game-container" class="w-full max-w-3xl glass-panel p-4 sm:p-8 rounded-xl relative overflow-hidden">
+        <div class="grid-floor"></div>
+        <div class="text-center mb-5 relative" style="z-index:1">
+            <img src="logo.png" alt="GUARD-IA" class="helmet" />
+            <h1 class="arcade-title"><span class="l2">QUIZ GUARD-IA</span></h1>
+            <span class="coin blink">- INSERT COIN -</span>
         </div>
 
-        <!-- Home Screen -->
-        <div id="home-screen" class="space-y-5">
-            <p class="text-center text-sm sm:text-base italic opacity-90 px-2">Identidad confirmada. Selecciona nivel de acceso:</p>
-            <div class="grid grid-cols-1 gap-3">
-                <button id="btn-tier1" onclick="startQuiz('alto', 60)" class="matrix-btn p-4 rounded-lg text-left flex justify-between items-center group" disabled>
-                    <span class="text-sm sm:text-base font-bold text-red-500">TIER-1: NAVY SEAL</span>
-                    <span class="text-[10px] opacity-70" id="status-tier1">[BLOQUEADO] 🔒</span>
-                </button>
-                <button id="btn-tier2" onclick="startQuiz('medio', 90)" class="matrix-btn p-4 rounded-lg text-left flex justify-between items-center group" disabled>
-                    <span class="text-sm sm:text-base font-bold text-yellow-500">TIER-2: SWAT</span>
-                    <span class="text-[10px] opacity-70" id="status-tier2">[BLOQUEADO] 🔒</span>
-                </button>
-                <button id="btn-tier3" onclick="startQuiz('basico', 120)" class="matrix-btn p-4 rounded-lg text-left flex justify-between items-center group">
-                    <span class="text-sm sm:text-base font-bold text-green-500">TIER-3: PATRULLERO</span>
-                    <span class="text-[10px] opacity-70" id="status-tier3">ENTRAR >></span>
-                </button>
+        <!-- ============ HOME · RUTA ============ -->
+        <div id="home-screen" class="space-y-4 relative" style="z-index:1">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-sm sm:text-base opacity-90 whitespace-nowrap">Tu ruta de la IA, <span class="glow-text font-bold">paso a paso</span>.</p>
+                <span class="text-[10px] uppercase tracking-widest opacity-50 whitespace-nowrap hidden sm:inline">a tu ritmo · se guarda</span>
             </div>
-            <div class="text-center mt-4">
-                <button onclick="resetProgress()" class="text-[9px] opacity-30 hover:opacity-100 underline border-none bg-transparent">Borrar memoria de progreso</button>
+            <div class="flex items-center gap-2">
+                <div class="progress-bar"><div id="route-fill" class="progress-fill" style="width:0%"></div></div>
+                <span id="route-count" class="text-[10px] opacity-70 whitespace-nowrap">0/6 superados</span>
+            </div>
+            <div id="path-list" class="content-scroll space-y-2.5 pr-1"></div>
+            <div class="text-center pt-1">
+                <button onclick="resetProgress()" class="text-[9px] opacity-30 hover:opacity-100 underline border-none bg-transparent">Reiniciar mi ruta</button>
             </div>
         </div>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="hidden flex-col h-full">
-            <div class="flex justify-between items-center mb-3 text-[10px] sm:text-xs uppercase tracking-tighter">
-                <span id="difficulty-label" class="border border-green-500 px-2 py-0.5"></span>
-                <span class="font-bold border border-red-500 px-2 py-0.5 text-red-500 transition-colors" id="timer-display">T-MINUS: 00:00</span>
-                <span class="font-bold">PUNTOS: <span id="current-score" class="text-white">0</span></span>
+        <!-- ============ GAME ============ -->
+        <div id="game-screen" class="hidden flex-col h-full relative" style="z-index:1">
+            <div class="flex justify-between items-center mb-2 text-[10px] sm:text-xs uppercase tracking-tighter">
+                <span id="stage-label" class="border border-green-500 px-2 py-0.5 truncate max-w-[42%]"></span>
+                <span id="type-label" class="opacity-60 truncate"></span>
+                <span class="font-bold whitespace-nowrap">✔ <span id="score-display" class="text-white">0</span></span>
             </div>
-            
-            <div class="progress-bar mb-5"><div id="progress-fill" class="progress-fill" style="width: 0%"></div></div>
+
+            <div class="flex items-center gap-2 mb-4">
+                <div class="progress-bar"><div id="progress-fill" class="progress-fill" style="width: 0%"></div></div>
+                <span id="q-counter" class="text-[10px] opacity-60 whitespace-nowrap">0/0</span>
+                <span id="streak-display" class="text-[11px] font-bold text-yellow-400 whitespace-nowrap w-12 text-right"></span>
+            </div>
 
             <div class="content-scroll flex-grow">
-                <div id="question-area" class="space-y-4">
-                    <h2 id="question-text" class="text-base sm:text-lg font-bold leading-tight min-h-[3.5rem] border-l-2 border-green-500 pl-3"></h2>
-                    <div id="options-grid" class="grid grid-cols-1 gap-3 pb-4"></div>
-                </div>
+                <div id="card-area" class="space-y-4"></div>
+                <div id="explain-area" class="hidden explain-box p-3.5 rounded-r-lg mt-4 text-sm leading-relaxed fade-up"></div>
             </div>
 
-            <div id="feedback-message" class="text-center h-6 text-xs font-bold mt-2 animate-pulse uppercase"></div>
-
-            <div class="flex justify-between mt-4 border-t border-green-900 pt-4">
-                <button id="btn-prev" onclick="prevQuestion()" class="matrix-btn px-4 py-2 rounded text-[10px] sm:text-xs font-bold"><< ATRÁS</button>
-                <button id="btn-next" onclick="nextQuestion()" class="matrix-btn px-4 py-2 rounded text-[10px] sm:text-xs font-bold">SIGUIENTE >></button>
+            <div class="mt-4 border-t border-green-900 pt-4">
+                <button id="btn-continue" onclick="nextCard()" class="hidden matrix-btn w-full px-4 py-3.5 rounded font-bold text-sm">SIGUIENTE &gt;&gt;</button>
+                <button onclick="goHome()" id="btn-quit" class="text-[10px] opacity-40 hover:opacity-100 underline border-none bg-transparent w-full mt-2">Volver a la ruta</button>
             </div>
         </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="hidden text-center space-y-6 py-4">
-            <h2 class="text-3xl font-bold glow-text" id="result-title">COMPLETADO</h2>
-            <div class="relative inline-block">
-                <div class="text-6xl font-bold" id="final-score-display">0</div>
-                <div class="text-[10px] uppercase opacity-50">Score Final</div>
+        <!-- ============ RESULT ============ -->
+        <div id="result-screen" class="hidden text-center space-y-5 py-3 relative" style="z-index:1">
+            <div class="text-5xl pop" id="result-emoji">🤖</div>
+            <h2 class="pixel text-sm sm:text-lg glow-text" id="result-title">NIVEL COMPLETADO</h2>
+            <div>
+                <div class="text-6xl font-bold" id="result-score">0/10</div>
+                <div class="text-[10px] uppercase opacity-50 mt-1">aciertos</div>
             </div>
-            <p id="rank-message" class="text-sm font-bold border-y border-green-900 py-2 mx-4"></p>
-            <p id="unlock-message" class="text-xs text-yellow-500 animate-pulse h-4"></p>
-            <button onclick="goHome()" class="matrix-btn w-full sm:w-auto px-10 py-4 rounded-lg font-bold">VOLVER A CENTRAL</button>
+            <p id="result-rank" class="text-base font-bold border-y border-green-900 py-2 mx-2"></p>
+            <p id="result-tip" class="text-xs opacity-80 px-3 leading-relaxed"></p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button id="btn-next-stage" onclick="nextStage()" class="hidden matrix-btn px-4 py-3 rounded-lg font-bold text-sm">SIGUIENTE NIVEL ▶</button>
+                <button onclick="replay()" class="matrix-btn px-4 py-3 rounded-lg font-bold text-sm">REPETIR ↻</button>
+                <button onclick="goHome()" class="matrix-btn px-4 py-3 rounded-lg font-bold text-sm">VER RUTA</button>
+            </div>
         </div>
     </div>
 
-    <div class="fixed bottom-4 left-0 w-full text-[10px] opacity-40 text-center uppercase tracking-[0.4em] pointer-events-none font-bold">
-        SISTEMA GUARD-IA TEST
+    <div class="fixed bottom-3 left-0 w-full text-[9px] opacity-40 text-center uppercase tracking-[0.35em] pointer-events-none font-bold">
+        GUARD-IA · QUIZ
     </div>
 
     <script>
-        // --- BASE DE DATOS DE PREGUNTAS ---
-        const questionsDB = {
-            basico: [
-                { q: "¿Qué significan las siglas IA?", a: ["Inteligencia Artística", "Inteligencia Artificial", "Internet Avanzado", "Información Aplicada"], correct: 1 },
-                { q: "¿Cómo se llama el chatbot más famoso de OpenAI?", a: ["Jarvis", "Hal 9000", "ChatGPT", "Cortana"], correct: 2 },
-                { q: "¿La IA puede tener sentimientos reales?", a: ["Sí, como nosotros", "No, simula respuestas", "Solo si está conectada", "A veces se enamora"], correct: 1 },
-                { q: "¿Qué es un 'Prompt'?", a: ["Un virus", "La instrucción que le das a la IA", "Un tipo de memoria", "El teclado"], correct: 1 },
-                { q: "¿Qué hace una IA generativa de imágenes?", a: ["Arregla fotos", "Crea arte desde texto", "Borra el fondo", "Hackea cámaras"], correct: 1 },
-                { q: "¿Qué asistente de voz es desarrollado por Amazon?", a: ["Siri", "Alexa", "Cortana", "Bixby"], correct: 1 },
-                { q: "¿Puede un coche autónomo usar Inteligencia Artificial?", a: ["Solo los eléctricos", "Sí, para entender el entorno", "No, usan imanes", "Solo si hay wifi"], correct: 1 },
-                { q: "¿Qué es un 'Deep Fake'?", a: ["Un sueño profundo", "Una imagen o vídeo falso creado por IA", "Un error del sistema", "Un juego de realidad virtual"], correct: 1 },
-                { q: "¿La Inteligencia Artificial puede componer música?", a: ["No, no tienen oído", "Sí, analizando patrones", "Solo música clásica", "Solo si le cantas antes"], correct: 1 },
-                { q: "¿Qué significa la palabra 'Chat' en ChatGPT?", a: ["Conversación", "Computadora", "Cálculo", "Centro"], correct: 0 }
-            ],
-            medio: [
-                { q: "¿Qué es el Machine Learning?", a: ["Aprendizaje automático", "Máquinas de gimnasio", "Cargar la batería", "Limpieza de datos"], correct: 0 },
-                { q: "¿En qué año se hizo público ChatGPT?", a: ["2021", "2022", "2023", "2024"], correct: 1 },
-                { q: "¿Qué es una 'Alucinación' en IA?", a: ["Se apaga sola", "Inventa datos falsos", "Cambia de color", "Habla muy rápido"], correct: 1 },
-                { q: "¿Qué significa GPT?", a: ["General Photo Tool", "Generative Pre-trained Transformer", "Global Power Talk", "Grid Processing Tech"], correct: 1 },
-                { q: "¿Quién fundó OpenAI?", a: ["Solo Elon Musk", "Sam Altman y otros", "Bill Gates", "Mark Zuckerberg"], correct: 1 },
-                { q: "¿Qué es el sesgo (bias) en un modelo de IA?", a: ["Prejuicios heredados de datos", "Cuando la IA se vuelve perezosa", "Un error de internet", "El exceso de memoria RAM"], correct: 0 },
-                { q: "¿Qué empresa adquirió el laboratorio de IA DeepMind?", a: ["Apple", "Microsoft", "Google", "Amazon"], correct: 2 },
-                { q: "¿Qué es una Red Neuronal Convolucional (CNN)?", a: ["Red para procesar textos", "Red para analizar imágenes", "Red para conectar servidores", "Una red social de IA"], correct: 1 },
-                { q: "¿Qué juego dominó la IA AlphaGo en 2016?", a: ["Ajedrez", "Damas", "Go", "Monopoly"], correct: 2 },
-                { q: "¿Qué significan las siglas NLP (PLN)?", a: ["Network Level Protocol", "Procesamiento de Lenguaje Natural", "Neural Logic Path", "New Learning Process"], correct: 1 }
-            ],
-            alto: [
-                { q: "¿Qué es un LLM?", a: ["Low Logic Mode", "Large Language Model", "Linear List Matrix", "Long Link Machine"], correct: 1 },
-                { q: "¿Qué arquitectura usan los LLMs modernos?", a: ["RNN", "Transformers", "CNN", "Blockchain"], correct: 1 },
-                { q: "¿Qué es el Fine-tuning?", a: ["Limpiar el hardware", "Ajustar un modelo para tarea específica", "Subir el volumen", "Cambiar de idioma"], correct: 1 },
-                { q: "¿Qué mide el Test de Turing?", a: ["Potencia de cálculo", "Imitar comportamiento humano", "Velocidad de red", "Seguridad"], correct: 1 },
-                { q: "¿Qué es la IA Fuerte (AGI)?", a: ["Una IA muy rápida", "Inteligencia similar a la humana en todo", "Un servidor pesado", "IA inhackeable"], correct: 1 },
-                { q: "¿Qué función de activación es más común en capas ocultas?", a: ["Sigmoide", "Tanh", "ReLU", "Softmax"], correct: 2 },
-                { q: "¿Qué problema intenta resolver la 'Atención' en Transformers?", a: ["El sobrecalentamiento", "El olvido del contexto en textos largos", "El coste de luz", "La falta de vocabulario"], correct: 1 },
-                { q: "¿Qué es el 'Overfitting'?", a: ["Memoriza el entrenamiento y falla en datos nuevos", "Servidor lleno", "Responde muy rápido", "Fallo de seguridad"], correct: 0 },
-                { q: "¿Qué es un 'Token' en LLMs?", a: ["Criptomoneda", "Fragmento de palabra o carácter", "Contraseña", "Disco duro"], correct: 1 },
-                { q: "¿Qué técnica adapta un LLM a preferencias humanas usando recompensas?", a: ["CNN", "GAN", "RLHF", "PCA"], correct: 2 }
-            ]
-        };
+    /* ============================================================
+       BANCO  ·  s = nivel (1..6)  ·  tipos: mcq | tf | iah | fake
+       ============================================================ */
+    const BANK = [
+        // ===== NIVEL 1 · PRIMEROS PASOS (conceptos base) =====
+        { s:1, type:'mcq', q:"¿Qué es un 'prompt'?", a:["Un error del sistema","La instrucción que le das a la IA","El botón de encendido","Un virus"], correct:1,
+          explain:"El prompt es lo que le pides. Cuanto más claro y con más contexto, mejor responde. Saber preguntar es media batalla." },
+        { s:1, type:'mcq', q:"¿Qué significa que una IA 'alucina'?", a:["Se apaga sola","Se inventa datos falsos con total seguridad","Cambia de idioma","Va más lenta"], correct:1,
+          explain:"Alucinar = dar información inventada pero con tono convincente. Es el mayor riesgo de la IA: por eso hay que verificar los datos importantes." },
+        { s:1, type:'mcq', q:"¿Qué es un 'token' para un modelo de lenguaje?", a:["Una contraseña","Un fragmento de palabra o carácter","Una criptomoneda","Un disco duro"], correct:1,
+          explain:"Los modelos no leen palabras enteras, sino trozos llamados tokens. Por eso a veces cuentan mal las letras de una palabra." },
+        { s:1, type:'mcq', q:"¿Qué significan las siglas LLM?", a:["Low Level Machine","Large Language Model","Linear Logic Method","Long Link Mode"], correct:1,
+          explain:"Large Language Model (gran modelo de lenguaje). Son los que hay detrás de ChatGPT, Claude o Gemini." },
+        { s:1, type:'mcq', q:"¿Qué significa GPT?", a:["Global Power Tool","Generative Pre-trained Transformer","General Photo Test","Grid Processing Type"], correct:1,
+          explain:"Generative (genera), Pre-trained (preentrenado con muchísimo texto) y Transformer (la arquitectura que lo hace posible)." },
+        { s:1, type:'mcq', q:"¿Qué es el 'machine learning'?", a:["Máquinas de gimnasio","Que el sistema aprende de ejemplos, no de reglas fijas","Reiniciar el equipo","Un antivirus"], correct:1,
+          explain:"En vez de programarle reglas una a una, le enseñas con muchos ejemplos y aprende los patrones por su cuenta." },
 
-        // --- SISTEMA DE AUDIO SINTETIZADO ---
-        let audioCtx;
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        // ===== NIVEL 2 · MITOS Y VERDADES (tf) =====  correct:true=REALIDAD  false=MITO
+        { s:2, type:'tf', q:"La IA entiende lo que dice igual que lo entiende una persona.", correct:false,
+          explain:"MITO. Un LLM predice la siguiente palabra más probable según patrones. No hay comprensión ni consciencia detrás." },
+        { s:2, type:'tf', q:"Una IA puede darte un dato falso con total seguridad.", correct:true,
+          explain:"REALIDAD. Se llama 'alucinación'. El tono seguro NO garantiza que sea cierto: verifica lo importante." },
+        { s:2, type:'tf', q:"Cuantos más datos le metas a un modelo, siempre saldrá mejor.", correct:false,
+          explain:"MITO. La calidad y la variedad importan más que la cantidad bruta. Datos malos o sesgados = modelo malo o sesgado." },
+        { s:2, type:'tf', q:"La misma pregunta puede darte dos respuestas distintas.", correct:true,
+          explain:"REALIDAD. Muchos modelos eligen las palabras con algo de azar (temperatura), así que repetir puede variar la respuesta." },
+        { s:2, type:'tf', q:"La IA es objetiva y neutral por naturaleza.", correct:false,
+          explain:"MITO. Hereda los sesgos de los datos con los que se entrenó. La neutralidad hay que cuidarla, no se da sola." },
+        { s:2, type:'tf', q:"Si le pides fuentes, a veces se las inventa aunque parezcan reales.", correct:true,
+          explain:"REALIDAD. Puede fabricar referencias o enlaces con pinta creíble. Comprueba que existan de verdad." },
+        { s:2, type:'tf', q:"Un generador de imágenes recorta y pega trozos de fotos reales.", correct:false,
+          explain:"MITO. Genera píxeles nuevos desde cero a partir de patrones aprendidos; no hace un collage de fotos existentes." },
+        { s:2, type:'tf', q:"Por defecto, un chatbot conoce las noticias de hoy.", correct:false,
+          explain:"MITO. Responde con lo que aprendió hasta su fecha de corte, salvo que tenga navegación web activada." },
+        { s:2, type:'tf', q:"Puedes usar la IA para programar aunque no sepas programar.", correct:true,
+          explain:"REALIDAD. Te escribe y explica código. Aun así conviene revisar lo que hace: puede colar errores con buena cara." },
+        { s:2, type:'tf', q:"Que una respuesta suene muy segura significa que es correcta.", correct:false,
+          explain:"MITO. Seguridad en el tono y veracidad son cosas distintas. Una IA puede equivocarse con enorme aplomo." },
+
+        // ===== NIVEL 3 · ¿IA O HUMANO? (iah) =====  correct:'ia' | 'humano'
+        { s:3, type:'iah', q:"En resumen, la fotosíntesis es un proceso fascinante que combina luz, agua y dióxido de carbono. En definitiva, ¡la naturaleza es asombrosa! 🌿", correct:'ia',
+          explain:"Suena a IA: estructura pulida, muletillas ('En resumen / En definitiva'), tono genérico entusiasta y emoji de cierre." },
+        { s:3, type:'iah', q:"pff no sé tío, ayer probé el sitio ese y me petó dos veces, al final lo dejé jaja", correct:'humano',
+          explain:"Muy humano: jerga, sin puntuación cuidada, una experiencia personal concreta y esa naturalidad imperfecta." },
+        { s:3, type:'iah', q:"¡Excelente pregunta! Vamos a desglosarlo paso a paso para que quede todo perfectamente claro. Aquí tienes 3 puntos clave:", correct:'ia',
+          explain:"Patrón clásico de IA: halago de apertura, 'paso a paso' y anuncio de una lista numerada." },
+        { s:3, type:'iah', q:"me cago en... otra vez el excel sin guardar 😤 tres horas a la basura", correct:'humano',
+          explain:"Humano de libro: frustración real, exabrupto, contexto personal y un desahogo que una IA no suele soltar así." },
+        { s:3, type:'iah', q:"Es importante destacar que ambas opciones tienen ventajas y desventajas. Todo depende de tus necesidades específicas.", correct:'ia',
+          explain:"Respuesta 'equilibrada-evasiva' típica de IA: no se moja y usa muletillas ('Es importante destacar')." },
+        { s:3, type:'iah', q:"oye y si mejor quedamos el jueves? el finde lo tengo liado con lo de mi hermana", correct:'humano',
+          explain:"Humano: planes cotidianos, referencia personal ('lo de mi hermana') y tono coloquial sin pulir." },
+        { s:3, type:'iah', q:"Claro, con gusto. A continuación te presento una explicación detallada y estructurada del tema solicitado.", correct:'ia',
+          explain:"IA: cortesía formal y anuncio de lo que va a hacer antes de hacerlo ('a continuación te presento')." },
+        { s:3, type:'iah', q:"creo q era el 2019... o el 20? bufff no me acuerdo la verdad", correct:'humano',
+          explain:"Humano: duda genuina, se corrige a sí mismo y admite no acordarse. La IA rara vez titubea así." },
+
+        // ===== NIVEL 4 · CAZA LA ALUCINACIÓN (fake) =====  correct = índice de la frase INVENTADA
+        { s:4, type:'fake', topic:"ChatGPT", a:["Lo desarrolla la empresa OpenAI.","Se hizo mundialmente popular a finales de 2022.","A veces comete errores factuales.","Tiene consciencia y emociones propias."], correct:3,
+          explain:"No tiene consciencia ni emociones: simula el lenguaje. Atribuirle sentimientos es el mito de IA más repetido. Fíjate: iba entre tres verdades para 'colar'." },
+        { s:4, type:'fake', topic:"cómo aprende una IA", a:["Detecta patrones en grandes cantidades de datos.","Necesita ejemplos para mejorar.","Puede heredar los sesgos de esos datos.","Aprende sola, sin datos, solo 'pensando'."], correct:3,
+          explain:"Sin datos no aprende nada. Una IA no razona de la nada: extrae patrones de los ejemplos que le das. Esa cuarta frase es puro humo." },
+        { s:4, type:'fake', topic:"la IA que genera imágenes", a:["Crea imágenes nuevas a partir de una descripción en texto.","Puede inventar personas que no existen.","A veces dibuja manos con dedos de más.","Fotografía escenas reales con una cámara oculta."], correct:3,
+          explain:"No fotografía nada: genera píxeles nuevos desde cero. Lo de los dedos de más, en cambio, es un fallo real y famoso de estos modelos." },
+        { s:4, type:'fake', topic:"los asistentes de voz (Alexa, Siri)", a:["Convierten tu voz en texto para entenderte.","Suelen usar la conexión a internet.","Pueden controlar dispositivos del hogar.","Entienden tus emociones mejor que un psicólogo."], correct:3,
+          explain:"Detectan palabras, no sentimientos. Presumir de 'entender emociones mejor que un psicólogo' es la típica exageración inventada." },
+        { s:4, type:'fake', topic:"los modelos de lenguaje (LLM)", a:["Predicen la siguiente palabra más probable.","Se miden en 'parámetros' y en 'tokens'.","Pueden 'alucinar' y dar datos falsos.","Guardan una copia exacta de todo internet en su interior."], correct:3,
+          explain:"No almacenan internet como una biblioteca: aprenden patrones estadísticos. Por eso no 'consultan' una copia exacta de nada." },
+
+        // ===== NIVEL 5 · EL ARTE DE PREGUNTAR (prompting) =====
+        { s:5, type:'mcq', q:"¿Cuál es el MEJOR prompt para un buen resumen?", a:["\"resume esto\"","\"Resume este texto en 3 puntos clave, para alguien sin conocimientos previos\"","\"hazlo corto\"","\"resumen porfa\""], correct:1,
+          explain:"Dar formato (3 puntos), longitud y público objetivo dispara la calidad. 'Resume esto' obliga a la IA a adivinar." },
+        { s:5, type:'mcq', q:"Si la IA te da una respuesta demasiado genérica, lo más útil es...", a:["Repetir la misma pregunta","Darle más contexto y un ejemplo de lo que buscas","Subir el volumen","Cerrar y abrir la app"], correct:1,
+          explain:"El contexto es el combustible. Un ejemplo de 'así lo quiero' orienta mucho mejor que insistir con lo mismo." },
+        { s:5, type:'mcq', q:"¿Qué consigues al pedirle que 'razone paso a paso'?", a:["Que vaya más lento a propósito","Que piense por etapas y acierte más en problemas con lógica","Que gaste menos batería","Que hable en otro idioma"], correct:1,
+          explain:"Se llama 'cadena de pensamiento'. Al desglosar el razonamiento comete menos errores en cálculos y problemas encadenados." },
+        { s:5, type:'mcq', q:"Para que la IA adopte un rol concreto, lo haces...", a:["Repitiéndolo 10 veces","Diciéndoselo al principio: 'Actúa como un profesor de...'","No se puede","Pagando más"], correct:1,
+          explain:"Asignar un rol al inicio ('Actúa como...') ajusta el tono, el vocabulario y el enfoque de toda la respuesta." },
+        { s:5, type:'mcq', q:"Con datos importantes, la mejor práctica al usar IA es...", a:["Fiarte al 100%","Verificar la respuesta en una fuente fiable","Copiarla sin leer","Borrar la conversación"], correct:1,
+          explain:"La IA es un copiloto, no un oráculo. En temas serios (salud, legal, dinero) contrasta siempre con una fuente de confianza." },
+
+        // ===== NIVEL 6 · NIVEL EXPERTO (conceptos avanzados) =====
+        { s:6, type:'mcq', q:"¿Qué controla la 'temperatura' de un modelo?", a:["Su velocidad","Cuánta aleatoriedad/creatividad tiene la respuesta","El consumo eléctrico","El idioma"], correct:1,
+          explain:"Temperatura baja = respuestas predecibles. Alta = más variadas y creativas... y con más riesgo de desvarío." },
+        { s:6, type:'mcq', q:"¿Qué es la 'ventana de contexto'?", a:["El monitor","Cuánto texto puede tener 'en mente' a la vez","Una función de copiar-pegar","El historial de internet"], correct:1,
+          explain:"Es su memoria de trabajo en una conversación. Si te pasas de largo, empieza a 'olvidar' lo del principio." },
+        { s:6, type:'mcq', q:"¿Qué es un modelo 'multimodal'?", a:["Uno con varios idiomas","Uno que entiende texto, imagen y/o audio","Uno muy rápido","Uno de pago"], correct:1,
+          explain:"Multimodal = maneja varios tipos de dato a la vez. Le puedes enseñar una foto y pedirle que la describa." },
+        { s:6, type:'mcq', q:"¿Qué hace la técnica RAG (Retrieval-Augmented Generation)?", a:["Acelera la GPU","Le da documentos reales para responder con ellos y no de memoria","Comprime el modelo","Traduce automáticamente"], correct:1,
+          explain:"RAG es 'busca primero, responde después': consulta una fuente fiable y contesta apoyándose en ella. Reduce mucho las alucinaciones." },
+        { s:6, type:'mcq', q:"¿Qué es un 'agente' de IA?", a:["Un comercial que vende IA","Una IA que además de responder usa herramientas y ejecuta pasos sola","Un servidor","Un usuario premium"], correct:1,
+          explain:"Un agente no solo charla: puede buscar, calcular, llamar a otras apps y encadenar tareas para lograr un objetivo." },
+        { s:6, type:'mcq', q:"El Test de Turing sirve para valorar si...", a:["Un ordenador es rápido","Una máquina puede pasar por humana conversando","Una red es segura","Un móvil tiene buena batería"], correct:1,
+          explain:"Lo propuso Alan Turing en 1950: si al conversar no distingues si hay máquina o persona, la máquina 'pasa' el test." }
+    ];
+
+    /* ==================== NIVELES ==================== */
+    const STAGES = [
+        { n:1, icon:'🌱', name:'Primeros pasos',      sub:'Qué es la IA y cómo funciona' },
+        { n:2, icon:'⚖️', name:'Mitos y verdades',    sub:'Separa el bulo del hecho' },
+        { n:3, icon:'🕵️', name:'¿IA o Humano?',       sub:'Detecta textos escritos por IA' },
+        { n:4, icon:'👻', name:'Caza la alucinación', sub:'Pilla el dato inventado' },
+        { n:5, icon:'✍️', name:'El arte de preguntar',sub:'Prompts que sí funcionan' },
+        { n:6, icon:'🧠', name:'Nivel experto',        sub:'Conceptos que impresionan' }
+    ];
+    const MAXSTAGE = STAGES.length;
+    const PASS = 0.6; // % de aciertos para desbloquear el siguiente
+    const TYPE_LABEL = { mcq:'ELIGE LA CORRECTA', tf:'¿MITO O REALIDAD?', iah:'¿IA O HUMANO?', fake:'CAZA LA ALUCINACIÓN' };
+
+    const stageTotal = {};
+    STAGES.forEach(s => stageTotal[s.n] = BANK.filter(x=>x.s===s.n).length);
+
+    /* ==================== ESTADO ==================== */
+    let queue = [], idx = 0, correctCount = 0, streak = 0, maxStreak = 0, answered = false, curStage = 1;
+
+    /* ==================== PERSISTENCIA ==================== */
+    function getUnlocked(){ return parseInt(localStorage.getItem('guardia_unlocked')) || 1; }
+    function setUnlocked(v){ localStorage.setItem('guardia_unlocked', v); }
+    function getBest(n){ const v = localStorage.getItem('guardia_best_'+n); return v===null?null:parseInt(v); }
+    function setBest(n,v){ const p=getBest(n); if(p===null||v>p) localStorage.setItem('guardia_best_'+n, v); }
+    function resetProgress(){
+        if(confirm('¿Reiniciar tu ruta y empezar desde el Nivel 1?')){
+            for(let i=1;i<=MAXSTAGE;i++) localStorage.removeItem('guardia_best_'+i);
+            setUnlocked(1); renderPath();
         }
-        
-        function playSound(type) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-            
-            if (type === 'click') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'correct') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
-                osc.frequency.setValueAtTime(1200, now + 0.1);
-                gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
-                osc.start(now); osc.stop(now + 0.2);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.4);
-                osc.start(now); osc.stop(now + 0.4);
-            } else if (type === 'tick') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(1000, now);
-                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                osc.start(now); osc.stop(now + 0.05);
-            } else if (type === 'alarm') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(400, now);
-                osc.frequency.setValueAtTime(300, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
-                osc.start(now); osc.stop(now + 0.6);
-            }
+    }
+
+    /* ==================== AUDIO ==================== */
+    let audioCtx;
+    function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+    function playSound(type){
+        if(!audioCtx) return;
+        const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination); const now=audioCtx.currentTime;
+        if(type==='click'){ osc.type='sine'; osc.frequency.setValueAtTime(600,now); gain.gain.setValueAtTime(0.08,now); gain.gain.exponentialRampToValueAtTime(0.01,now+0.1); osc.start(now); osc.stop(now+0.1); }
+        else if(type==='correct'){ osc.type='square'; osc.frequency.setValueAtTime(800,now); osc.frequency.setValueAtTime(1200,now+0.1); gain.gain.setValueAtTime(0.05,now); gain.gain.linearRampToValueAtTime(0,now+0.2); osc.start(now); osc.stop(now+0.2); }
+        else if(type==='wrong'){ osc.type='sawtooth'; osc.frequency.setValueAtTime(160,now); osc.frequency.exponentialRampToValueAtTime(55,now+0.4); gain.gain.setValueAtTime(0.09,now); gain.gain.linearRampToValueAtTime(0,now+0.4); osc.start(now); osc.stop(now+0.4); }
+        else if(type==='streak'){ osc.type='triangle'; osc.frequency.setValueAtTime(700,now); osc.frequency.setValueAtTime(1000,now+0.08); osc.frequency.setValueAtTime(1400,now+0.16); gain.gain.setValueAtTime(0.06,now); gain.gain.linearRampToValueAtTime(0,now+0.28); osc.start(now); osc.stop(now+0.28); }
+    }
+
+    /* ==================== UTILS ==================== */
+    function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function el(id){ return document.getElementById(id); }
+    function show(id){ el(id).classList.remove('hidden'); }
+    function hide(id){ el(id).classList.add('hidden'); }
+    function stars(pct){ return pct>=0.9?'★★★':pct>=0.75?'★★☆':'★☆☆'; }
+
+    /* ==================== RUTA (home) ==================== */
+    function renderPath(){
+        const wrap = el('path-list'); wrap.innerHTML='';
+        const unlocked = getUnlocked();
+        const done = Math.min(unlocked-1, MAXSTAGE);
+        el('route-fill').style.width = (done/MAXSTAGE*100)+'%';
+        el('route-count').textContent = done+'/'+MAXSTAGE+' superados';
+        if (unlocked > MAXSTAGE){
+            const crown = document.createElement('div');
+            crown.className='text-center py-2 text-yellow-400 font-bold text-sm pop';
+            crown.innerHTML='👑 ¡RUTA COMPLETADA! Eres experto en IA. Repite niveles para pulir tu puntuación.';
+            wrap.appendChild(crown);
         }
+        // Nivel 1 arriba, Nivel 6 abajo
+        for(let i=0;i<STAGES.length;i++){
+            const st=STAGES[i], n=st.n, total=stageTotal[n], best=getBest(n);
+            const state = n<unlocked ? 'done' : (n===unlocked ? 'current' : 'locked');
+            const row=document.createElement('button');
+            row.className='node w-full rounded-lg p-3 flex items-center gap-3 text-left '+state;
+            if(state==='locked') row.disabled=true; else row.onclick=()=>startStage(n);
 
-        // --- VARIABLES DE JUEGO ---
-        let currentLevel = [];
-        let currentDiff = '';
-        let currentIndex = 0;
-        let userAnswers = [];
-        let advanceTimer = null;
-        let countdownInterval = null;
-        let timeRemaining = 0;
-        
-        // --- SISTEMA DE DESBLOQUEO ---
-        let unlockedLevel = parseInt(localStorage.getItem('guardIaUnlock')) || 1; // 1=Basico, 2=Medio, 3=Alto
+            let badge;
+            if(state==='locked') badge='<span class="text-lg">🔒</span>';
+            else if(state==='done') badge='<span class="text-yellow-400 text-sm font-bold whitespace-nowrap">'+stars(best/total)+'<br><span class="text-green-400 text-[10px]">'+best+'/'+total+'</span></span>';
+            else badge='<span class="matrix-btn px-3 py-1.5 rounded text-[11px] font-bold whitespace-nowrap">'+(best===null?'EMPEZAR ▶':'SEGUIR ▶')+'</span>';
 
-        function updateHomeUI() {
-            const btnT2 = document.getElementById('btn-tier2');
-            const statT2 = document.getElementById('status-tier2');
-            const btnT1 = document.getElementById('btn-tier1');
-            const statT1 = document.getElementById('status-tier1');
-
-            if (unlockedLevel >= 2) {
-                btnT2.disabled = false; statT2.innerText = "ENTRAR >>";
-            } else {
-                btnT2.disabled = true; statT2.innerText = "[BLOQUEADO] 🔒";
-            }
-            if (unlockedLevel >= 3) {
-                btnT1.disabled = false; statT1.innerText = "ENTRAR >>";
-            } else {
-                btnT1.disabled = true; statT1.innerText = "[BLOQUEADO] 🔒";
-            }
+            row.innerHTML =
+                '<span class="node-num text-center"><span class="text-2xl">'+st.icon+'</span></span>'+
+                '<span class="flex-grow min-w-0">'+
+                    '<span class="block text-sm sm:text-base font-bold '+(state==='locked'?'':'glow-text')+' truncate">Nivel '+n+' · '+st.name+'</span>'+
+                    '<span class="block text-[11px] sm:text-xs opacity-70 truncate">'+st.sub+' · '+total+' preguntas</span>'+
+                '</span>'+
+                '<span class="flex-shrink-0 text-right">'+badge+'</span>';
+            wrap.appendChild(row);
         }
+    }
 
-        function resetProgress() {
-            if(confirm('¿Seguro que quieres borrar tu progreso y volver a ser PATRULLERO?')) {
-                localStorage.setItem('guardIaUnlock', 1);
-                unlockedLevel = 1;
-                updateHomeUI();
-            }
+    /* ==================== PARTIDA ==================== */
+    function startStage(n){
+        initAudio(); playSound('click');
+        curStage=n;
+        queue = shuffle(BANK.filter(x=>x.s===n));
+        idx=0; correctCount=0; streak=0; maxStreak=0;
+        hide('home-screen'); hide('result-screen'); show('game-screen');
+        renderCard();
+    }
+    function replay(){ startStage(curStage); }
+    function nextStage(){ if(curStage<MAXSTAGE) startStage(curStage+1); else goHome(); }
+
+    function updateHud(){
+        el('score-display').textContent=correctCount;
+        el('progress-fill').style.width=(idx/queue.length*100)+'%';
+        el('q-counter').textContent=(idx+1)+'/'+queue.length;
+        el('streak-display').textContent= streak>=2 ? ('🔥x'+streak) : '';
+    }
+
+    function renderCard(){
+        answered=false;
+        const card=queue[idx];
+        const st=STAGES.find(s=>s.n===curStage);
+        updateHud();
+        el('stage-label').textContent='N'+curStage+' '+st.icon;
+        el('type-label').textContent=TYPE_LABEL[card.type];
+        hide('explain-area'); hide('btn-continue');
+        el('game-container').classList.remove('shake','flash-red');
+        const area=el('card-area'); area.innerHTML='';
+        if(card.type==='mcq') renderMCQ(card,area);
+        else if(card.type==='tf') renderTF(card,area);
+        else if(card.type==='iah') renderIAH(card,area);
+        else if(card.type==='fake') renderFake(card,area);
+    }
+
+    function optionButton(text){
+        const b=document.createElement('button');
+        b.className='matrix-btn w-full p-3.5 rounded-lg text-left text-sm font-medium fade-up';
+        b.innerHTML=text; return b;
+    }
+    function questionHeading(text){
+        const h=document.createElement('h2');
+        h.className='text-base sm:text-xl font-bold leading-snug border-l-2 border-green-500 pl-3 mb-3';
+        h.innerHTML=text; return h;
+    }
+
+    function renderMCQ(card,area){
+        area.appendChild(questionHeading('&gt; '+card.q));
+        const grid=document.createElement('div'); grid.className='grid grid-cols-1 sm:grid-cols-2 gap-2.5';
+        const btns=[];
+        card.a.forEach((opt,i)=>{ const b=optionButton(opt); b.onclick=()=>resolveChoice(i===card.correct,card,btns,b,card.correct); btns.push(b); grid.appendChild(b); });
+        area.appendChild(grid);
+    }
+    function renderTF(card,area){
+        area.appendChild(questionHeading('«'+card.q+'»'));
+        const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-3';
+        const opts=[{t:'✔️ REALIDAD',v:true},{t:'❌ MITO',v:false}]; const btns=[];
+        opts.forEach(o=>{ const b=optionButton('<span class="block text-center text-base">'+o.t+'</span>');
+            b.onclick=()=>{ const ci=opts.findIndex(x=>x.v===card.correct); resolveChoice(o.v===card.correct,card,btns,b,ci); };
+            btns.push(b); grid.appendChild(b); });
+        area.appendChild(grid);
+    }
+    function renderIAH(card,area){
+        const lbl=document.createElement('p'); lbl.className='text-[10px] uppercase tracking-widest opacity-60 mb-2'; lbl.textContent='¿Quién escribió esto?'; area.appendChild(lbl);
+        const q=document.createElement('div'); q.className='border border-green-800 rounded-lg p-4 text-sm sm:text-base italic leading-relaxed bg-black/40'; q.textContent='“'+card.q+'”'; area.appendChild(q);
+        const grid=document.createElement('div'); grid.className='grid grid-cols-2 gap-3 mt-3';
+        const opts=[{t:'🤖 UNA IA',v:'ia'},{t:'🧑 UN HUMANO',v:'humano'}]; const btns=[];
+        opts.forEach(o=>{ const b=optionButton('<span class="block text-center">'+o.t+'</span>');
+            b.onclick=()=>{ const ci=opts.findIndex(x=>x.v===card.correct); resolveChoice(o.v===card.correct,card,btns,b,ci); };
+            btns.push(b); grid.appendChild(b); });
+        area.appendChild(grid);
+    }
+    function renderFake(card,area){
+        area.appendChild(questionHeading('Una IA afirma esto sobre <span class="text-white">'+card.topic+'</span>. Una frase es <span class="text-red-400">INVENTADA</span> 👻 ¿cuál?'));
+        const grid=document.createElement('div'); grid.className='grid grid-cols-1 gap-2.5';
+        const btns=[];
+        card.a.forEach((opt,i)=>{ const b=optionButton(opt); b.onclick=()=>resolveChoice(i===card.correct,card,btns,b,card.correct); btns.push(b); grid.appendChild(b); });
+        area.appendChild(grid);
+    }
+
+    /* ==================== RESOLUCIÓN ==================== */
+    function resolveChoice(isCorrect,card,btns,chosen,correctIdx){
+        if(answered) return; answered=true;
+        btns.forEach(b=>{ b.disabled=true; b.classList.remove('matrix-btn'); });
+        if(isCorrect){
+            playSound('correct'); chosen.classList.add('opt-correct');
+            correctCount++; streak++; if(streak>maxStreak) maxStreak=streak;
+            if(streak>=3){ playSound('streak'); confetti({particleCount:28,spread:55,startVelocity:22,origin:{y:0.35},colors:['#00ff41','#ffff66'],disableForReducedMotion:true}); }
+        } else {
+            playSound('wrong'); chosen.classList.add('opt-wrong');
+            if(btns[correctIdx]) btns[correctIdx].classList.add('opt-correct');
+            streak=0;
+            const c=el('game-container'); c.classList.remove('shake','flash-red'); void c.offsetWidth; c.classList.add('shake','flash-red');
         }
+        el('score-display').textContent=correctCount;
+        el('streak-display').textContent= streak>=2 ? ('🔥x'+streak) : '';
+        const ex=el('explain-area');
+        ex.innerHTML='<span class="font-bold '+(isCorrect?'text-green-400':'text-red-400')+'">'+(isCorrect?'✔ CORRECTO':'✘ FALLASTE')+'</span><br><span class="opacity-90">'+card.explain+'</span>';
+        show('explain-area'); ex.classList.remove('fade-up'); void ex.offsetWidth; ex.classList.add('fade-up');
+        setTimeout(()=>ex.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
+        const cont=el('btn-continue'); cont.textContent=(idx===queue.length-1)?'VER RESULTADO 🏁':'SIGUIENTE >>'; show('btn-continue');
+    }
+    function nextCard(){ playSound('click'); if(idx<queue.length-1){ idx++; renderCard(); } else showResults(); }
 
-        // --- EFECTO MATRIX CANVAS ---
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-        function setupCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZﾊﾐﾋｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ';
-        const fontSize = 14; let columns = 0; let rainDrops = [];
-        
-        function initMatrix() { 
-            setupCanvas(); 
-            columns = canvas.width / fontSize; 
-            rainDrops = Array.from({ length: columns }).fill(1); 
+    /* ==================== RESULTADO ==================== */
+    function showResults(){
+        hide('game-screen'); show('result-screen');
+        const total=queue.length, pct=correctCount/total;
+        el('result-score').textContent=correctCount+'/'+total;
+        el('progress-fill').style.width='100%';
+
+        const prevBest=getBest(curStage); const isRecord = prevBest===null || correctCount>prevBest;
+        setBest(curStage,correctCount);
+
+        const passed = pct>=PASS;
+        let justUnlocked=false;
+        if(passed && curStage===getUnlocked() && curStage<=MAXSTAGE){ setUnlocked(curStage+1); justUnlocked=true; }
+
+        let emoji,rank,tip;
+        if(pct>=0.9){ emoji='🥷'; rank='PROMPT NINJA'; tip='Dominas este nivel. Ahora explícaselo a un compañero: enseñar es la mejor forma de rematar lo aprendido.'; }
+        else if(pct>=0.75){ emoji='🤖'; rank='DOMADOR DE IAs'; tip='Muy buen nivel. Repasa las explicaciones de los fallos y a por el siguiente.'; }
+        else if(passed){ emoji='🔍'; rank='CURIOSO DIGITAL'; tip='¡Aprobado! Vas entendiendo la IA. Repite para pulir la nota o sigue subiendo.'; }
+        else { emoji='🌱'; rank='CASI'; tip='Te ha faltado poco. Lee las explicaciones e inténtalo otra vez: se desbloquea con '+Math.ceil(PASS*total)+'/'+total+' aciertos.'; }
+
+        el('result-emoji').textContent=emoji;
+        el('result-title').textContent = justUnlocked ? '¡NIVEL SUPERADO!' : (isRecord && passed ? '¡NUEVO RÉCORD!' : (passed?'NIVEL COMPLETADO':'SIGUE INTENTÁNDOLO'));
+        el('result-rank').textContent='RANGO: '+rank+(maxStreak>=3?('  ·  🔥 racha x'+maxStreak):'');
+        el('result-tip').textContent=tip;
+
+        const nextBtn=el('btn-next-stage');
+        if(passed && curStage<MAXSTAGE){ nextBtn.classList.remove('hidden'); } else nextBtn.classList.add('hidden');
+
+        if(pct>=0.75) setTimeout(()=>confetti({particleCount:160,spread:85,origin:{y:0.6},colors:['#00ff41','#004400','#ffffff','#ffff66'],disableForReducedMotion:true}),250);
+        else playSound('wrong');
+    }
+
+    /* ==================== NAV ==================== */
+    function goHome(){ playSound('click'); hide('game-screen'); hide('result-screen'); show('home-screen'); renderPath(); }
+
+    /* ==================== TECLADO (PC) ==================== */
+    document.addEventListener('keydown', e => {
+        if (el('game-screen').classList.contains('hidden')) return;
+        if (!answered && e.key >= '1' && e.key <= '9'){
+            const opts = el('card-area').querySelectorAll('button');
+            const i = parseInt(e.key) - 1;
+            if (opts[i]) opts[i].click();
+        } else if (answered && (e.key === 'Enter' || e.key === ' ')){
+            e.preventDefault(); nextCard();
         }
-        
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0F0'; 
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < rainDrops.length; i++) {
-                const text = chars.charAt(Math.floor(Math.random() * chars.length));
-                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
-                rainDrops[i]++;
-            }
-        }
+    });
 
-        // --- LÓGICA DEL TEMPORIZADOR ---
-        function formatTime(secs) {
-            const m = Math.floor(secs / 60); const s = secs % 60;
-            return `T-MINUS: ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
+    /* ==================== MATRIX BG ==================== */
+    const canvas=el('matrix-canvas'), mctx=canvas.getContext('2d');
+    const chars='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZアイウエオカキクケコ<>{}[]/*-+IA';
+    const fontSize=14; let rainDrops=[];
+    function initMatrix(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; const cols=Math.floor(canvas.width/fontSize); rainDrops=Array.from({length:cols}).fill(1); }
+    function drawMatrix(){
+        mctx.fillStyle='rgba(0,0,0,0.05)'; mctx.fillRect(0,0,canvas.width,canvas.height);
+        mctx.fillStyle='#0F0'; mctx.font=fontSize+'px monospace';
+        for(let i=0;i<rainDrops.length;i++){ const t=chars.charAt(Math.floor(Math.random()*chars.length)); mctx.fillText(t,i*fontSize,rainDrops[i]*fontSize); if(rainDrops[i]*fontSize>canvas.height&&Math.random()>0.975) rainDrops[i]=0; rainDrops[i]++; }
+    }
 
-        function startTimer(seconds) {
-            timeRemaining = seconds;
-            const timerDisplay = document.getElementById('timer-display');
-            timerDisplay.innerText = formatTime(timeRemaining);
-            timerDisplay.classList.remove('timer-warning');
-            
-            clearInterval(countdownInterval);
-            countdownInterval = setInterval(() => {
-                timeRemaining--;
-                timerDisplay.innerText = formatTime(timeRemaining);
-                
-                if (timeRemaining <= 10 && timeRemaining > 0) {
-                    timerDisplay.classList.add('timer-warning');
-                    playSound('tick');
-                }
-                
-                if (timeRemaining <= 0) {
-                    clearInterval(countdownInterval);
-                    timerDisplay.innerText = "¡SISTEMA BLOQUEADO!";
-                    playSound('alarm');
-                    timeOutFail();
-                }
-            }, 1000);
-        }
-
-        // --- LÓGICA DEL QUIZ ---
-        function startQuiz(diff, seconds) {
-            initAudio(); 
-            playSound('click');
-            currentDiff = diff;
-            currentLevel = questionsDB[diff];
-            currentIndex = 0;
-            userAnswers = new Array(currentLevel.length).fill(null);
-            
-            const labels = { 'basico': 'TIER-3: PATRULLERO', 'medio': 'TIER-2: SWAT', 'alto': 'TIER-1: NAVY SEAL' };
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-            document.getElementById('difficulty-label').innerText = labels[diff];
-            
-            startTimer(seconds);
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const qData = currentLevel[currentIndex];
-            document.getElementById('question-text').innerText = `> ${qData.q}`;
-            
-            // Recalcular puntos
-            let currentScore = 0;
-            userAnswers.forEach((ans, i) => { if (ans === currentLevel[i].correct) currentScore += 10; });
-            document.getElementById('current-score').innerText = currentScore;
-            
-            // Barra de progreso
-            document.getElementById('progress-fill').style.width = `${(currentIndex / currentLevel.length) * 100}%`;
-
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = "";
-            const feedback = document.getElementById('feedback-message');
-            feedback.innerText = "";
-            document.getElementById('game-container').classList.remove('shake', 'flash-red');
-
-            // Renderizar opciones
-            qData.a.forEach((opt, idx) => {
-                const b = document.createElement('button');
-                b.className = "matrix-btn p-4 rounded-lg text-left text-sm font-medium";
-                b.innerText = opt;
-                
-                // Si la pregunta ya fue contestada
-                if (userAnswers[currentIndex] !== null) {
-                    b.disabled = true; b.classList.remove('matrix-btn'); b.classList.add('opacity-80');
-                    if (idx === qData.correct) { b.style.borderColor = "#00ff41"; b.style.borderWidth = "2px"; }
-                    if (userAnswers[currentIndex] === idx) {
-                        if (idx === qData.correct) {
-                            b.style.backgroundColor = "rgba(0, 255, 65, 0.3)"; feedback.innerText = "ACCESO VÁLIDO"; feedback.style.color = "#00ff41";
-                        } else {
-                            b.style.backgroundColor = "rgba(255, 0, 0, 0.3)"; b.style.borderColor = "#ff0000"; feedback.innerText = "ERROR CRÍTICO"; feedback.style.color = "#ff0000";
-                        }
-                    }
-                } else {
-                    b.onclick = () => check(idx, b);
-                }
-                grid.appendChild(b);
-            });
-
-            document.getElementById('btn-prev').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-            document.getElementById('btn-next').innerText = currentIndex === currentLevel.length - 1 ? "FINALIZAR >>" : "SIGUIENTE >>";
-        }
-
-        function check(idx, btn) {
-            if (userAnswers[currentIndex] !== null || timeRemaining <= 0) return;
-            userAnswers[currentIndex] = idx;
-            const correct = currentLevel[currentIndex].correct;
-            const feedback = document.getElementById('feedback-message');
-            const container = document.getElementById('game-container');
-
-            let currentScore = parseInt(document.getElementById('current-score').innerText);
-
-            if (idx === correct) {
-                playSound('correct');
-                currentScore += 10;
-                btn.style.backgroundColor = "rgba(0, 255, 65, 0.3)"; btn.style.borderColor = "#00ff41";
-                feedback.innerText = "ACCESO VÁLIDO"; feedback.style.color = "#00ff41";
-            } else {
-                playSound('wrong');
-                btn.style.backgroundColor = "rgba(255, 0, 0, 0.3)"; btn.style.borderColor = "#ff0000";
-                feedback.innerText = "ERROR CRÍTICO"; feedback.style.color = "#ff0000";
-                
-                // Resaltar la correcta
-                const allBtns = document.querySelectorAll('#options-grid button');
-                allBtns[correct].style.borderColor = "#00ff41"; allBtns[correct].style.borderWidth = "2px";
-                
-                // Animación de fallo
-                container.classList.remove('shake', 'flash-red'); 
-                void container.offsetWidth; // Reflow
-                container.classList.add('shake', 'flash-red');
-            }
-            
-            document.getElementById('current-score').innerText = currentScore;
-            
-            // Bloquear botones
-            document.querySelectorAll('#options-grid button').forEach(b => { b.disabled = true; b.classList.remove('matrix-btn'); });
-
-            // Auto-avance rápido
-            clearTimeout(advanceTimer);
-            advanceTimer = setTimeout(() => nextQuestion(), 600);
-        }
-
-        function prevQuestion() {
-            playSound('click'); 
-            clearTimeout(advanceTimer);
-            if (currentIndex > 0) { currentIndex--; showQuestion(); }
-        }
-
-        function nextQuestion() {
-            playSound('click'); 
-            clearTimeout(advanceTimer);
-            if (currentIndex < currentLevel.length - 1) { currentIndex++; showQuestion(); } 
-            else { showResults(false); }
-        }
-
-        function timeOutFail() {
-            document.getElementById('game-container').classList.add('flash-red');
-            setTimeout(() => showResults(true), 1500);
-        }
-
-        function showResults(isTimeout) {
-            clearInterval(countdownInterval);
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-            
-            let finalScore = 0;
-            userAnswers.forEach((ans, i) => { if (ans === currentLevel[i].correct) finalScore += 10; });
-            document.getElementById('final-score-display').innerText = finalScore;
-            
-            const titleEl = document.getElementById('result-title');
-            const unlockMsgEl = document.getElementById('unlock-message');
-            unlockMsgEl.innerText = "";
-            
-            if (isTimeout) {
-                titleEl.innerText = "TIEMPO AGOTADO"; titleEl.style.color = "#ff0000";
-                document.getElementById('rank-message').innerText = "CONEXIÓN PERDIDA: DEMASIADO LENTO";
-            } else {
-                titleEl.innerText = "COMPLETADO"; titleEl.style.color = "#00ff41";
-                const msg = finalScore >= 80 ? "ERES EL ELEGIDO" : (finalScore >= 50 ? "AGENTE INTEGRADO" : "SISTEMA OBSOLETO");
-                document.getElementById('rank-message').innerText = msg;
-
-                // Lógica de desbloqueo (solo si saca 50 o más)
-                if (finalScore >= 50) {
-                    playSound('correct');
-                    if (currentDiff === 'basico' && unlockedLevel < 2) {
-                        unlockedLevel = 2; localStorage.setItem('guardIaUnlock', 2);
-                        unlockMsgEl.innerText = "¡NUEVO ACCESO DESBLOQUEADO: TIER-2 SWAT!";
-                    } else if (currentDiff === 'medio' && unlockedLevel < 3) {
-                        unlockedLevel = 3; localStorage.setItem('guardIaUnlock', 3);
-                        unlockMsgEl.innerText = "¡NUEVO ACCESO DESBLOQUEADO: TIER-1 NAVY SEAL!";
-                    }
-
-                    // Confeti
-                    setTimeout(() => {
-                        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00ff41', '#004400', '#ffffff'], disableForReducedMotion: true });
-                    }, 300);
-                } else {
-                    playSound('wrong');
-                }
-            }
-        }
-
-        function goHome() {
-            playSound('click');
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('home-screen').classList.remove('hidden');
-            updateHomeUI();
-        }
-
-        // Inicialización
-        window.onload = () => { 
-            initMatrix(); 
-            setInterval(drawMatrix, 50); 
-            updateHomeUI(); 
-        };
-        window.onresize = initMatrix;
+    /* ==================== INIT ==================== */
+    window.onload=()=>{ initMatrix(); setInterval(drawMatrix,55); renderPath(); };
+    window.onresize=initMatrix;
     </script>
 </body>
 </html>
