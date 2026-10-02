@@ -2,14 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
     <title>GUARD-IA | Quiz IA</title>
-    <meta name="description" content="Pon a prueba lo que sabes de Inteligencia Artificial. 6 niveles, a tu ritmo, cada respuesta te explica el porqué.">
+    <meta name="description" content="Reto diario de IA: 5 preguntas, las mismas para todos. Comparte tu resultado. Y una ruta de 7 niveles para aprender a tu ritmo.">
     <link rel="icon" type="image/png" href="logo.png">
-    <meta property="og:title" content="QUIZ GUARD-IA — ¿Cuánto sabes de IA?">
-    <meta property="og:description" content="6 niveles de menos a más: mitos, ¿IA o humano?, caza la alucinación, prompting... Cada respuesta te enseña el porqué.">
-    <meta property="og:image" content="https://onefrai.github.io/QUIZ-GUARD-IA/logo.png">
+    <meta property="og:title" content="QUIZ GUARD-IA · Reto del día">
+    <meta property="og:description" content="5 preguntas de IA cada día, las mismas para todos. ¿Cuántas aciertas tú?">
+    <meta property="og:image" content="https://onefrai.github.io/QUIZ-GUARD-IA/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://onefrai.github.io/QUIZ-GUARD-IA/">
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -17,7 +22,7 @@
         body {
             margin: 0; padding: 0; background-color: #000; color: #00ff41;
             font-family: 'Fira Code', monospace; overflow-x: hidden;
-            position: fixed; width: 100%; height: 100%;
+            min-height: 100vh; min-height: 100dvh;
         }
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; }
         .glass-panel { background: rgba(0, 15, 0, 0.9); border: 1px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); backdrop-filter: blur(8px); }
@@ -30,9 +35,6 @@
         .progress-fill { height: 100%; background: #00ff41; box-shadow: 0 0 10px #00ff41; transition: width 0.4s ease; border-radius: 3px; }
         .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: rgba(0, 255, 65, 0.05); animation: scan 10s linear infinite; z-index: 10; pointer-events: none; }
         @keyframes scan { 0% { transform: translateY(-100vh); } 100% { transform: translateY(100vh); } }
-        .content-scroll { max-height: 66vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #00ff41 transparent; }
-        .content-scroll::-webkit-scrollbar { width: 5px; }
-        .content-scroll::-webkit-scrollbar-thumb { background: #00ff41; border-radius: 3px; }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -62,6 +64,27 @@
         .node.locked { opacity: 0.4; }
         @media (min-width: 768px) { .node:not(.locked):hover { background: rgba(0,255,65,0.08); } }
         .node-num { min-width: 2.6rem; }
+        .chip-new { font-weight: 700; font-size: 9px; letter-spacing: 1px; background: #ffc400; color: #000; padding: 1px 5px; border-radius: 2px; margin-right: 6px; }
+
+        /* ---- Reto del día ---- */
+        .daily-card { border: 1px solid #ffc400; background: linear-gradient(180deg, rgba(255,196,0,0.10), rgba(255,196,0,0.03)); box-shadow: 0 0 18px rgba(255,196,0,0.18); }
+        .amber-btn { background: #ffc400; color: #000; border: 1px solid #ffc400; font-weight: 700; transition: all 0.15s ease; touch-action: manipulation; }
+        .amber-btn:active { transform: scale(0.98); }
+        @media (min-width: 768px) { .amber-btn:hover { box-shadow: 0 0 16px #ffc400; } }
+        .sq { width: 2.6rem; height: 2.6rem; border-radius: 5px; display: inline-block; }
+        .sq.ok { background: #00d636; box-shadow: 0 0 10px rgba(0,255,65,0.5); }
+        .sq.ko { background: #e01e1e; box-shadow: 0 0 10px rgba(255,0,0,0.4); }
+        .sq.sm { width: 1.15rem; height: 1.15rem; border-radius: 3px; }
+        .stat-tile { border: 1px solid #004d1a; border-radius: 6px; padding: 6px 2px; }
+        .dist-bar { background: #004d1a; color: #cfffcf; height: 18px; line-height: 18px; border-radius: 2px; text-align: right; padding-right: 5px; font-size: 10px; min-width: 18px; }
+        .dist-bar.me { background: #ffc400; color: #000; font-weight: 700; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .sum-arrow { transform: rotate(90deg); }
+        .sum-arrow { display: inline-block; transition: transform 0.15s ease; }
+        .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); opacity: 0; background: #00ff41; color: #000; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; z-index: 50; transition: all 0.25s ease; pointer-events: none; max-width: 90vw; text-align: center; box-shadow: 0 0 18px rgba(0,255,65,0.6); }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .mute-btn { position: absolute; top: 10px; right: 10px; z-index: 5; width: 34px; height: 34px; border: 1px solid #005522; border-radius: 6px; background: rgba(0,0,0,0.5); font-size: 15px; line-height: 1; touch-action: manipulation; }
 
         /* ---- Toque ochentero / arcade ---- */
         .pixel { font-family: 'Press Start 2P', monospace; line-height: 1.5; }
@@ -94,33 +117,42 @@
         .coin { font-family:'Press Start 2P', monospace; font-size: clamp(0.45rem, 2.4vw, 0.65rem); letter-spacing: 2px; opacity: 0.8; display:inline-block; margin-top: 8px; }
         .blink { animation: blink 1.3s steps(1) infinite; }
         @keyframes blink { 50% { opacity: 0.12; } }
+        /* Cabecera compacta mientras se juega: más sitio para la pregunta en el móvil */
+        #game-container.in-game .helmet, #game-container.in-game .coin { display: none; }
+        #game-container.in-game .arcade-title .l2 { font-size: clamp(0.8rem, 4vw, 1.1rem); }
+        #game-container.in-game .hdr { margin-bottom: 0.9rem; }
         @media (prefers-reduced-motion: reduce) { .l2, .crt-overlay, .helmet, .blink { animation: none !important; } }
     </style>
 </head>
-<body class="flex items-center justify-center p-3 sm:p-6">
+<body class="flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6">
     <canvas id="matrix-canvas"></canvas>
     <div class="scanline"></div>
     <div class="crt-overlay"></div>
 
     <div id="game-container" class="w-full max-w-3xl glass-panel p-4 sm:p-8 rounded-xl relative overflow-hidden">
         <div class="grid-floor"></div>
-        <div class="text-center mb-5 relative" style="z-index:1">
+        <button id="btn-mute" onclick="toggleMute()" class="mute-btn" aria-label="Activar o silenciar el sonido">🔊</button>
+        <div class="hdr text-center mb-5 relative" style="z-index:1">
             <img src="logo.png" alt="GUARD-IA" class="helmet" />
             <h1 class="arcade-title"><span class="l2">QUIZ GUARD-IA</span></h1>
             <span class="coin blink">- INSERT COIN -</span>
         </div>
 
-        <!-- ============ HOME · RUTA ============ -->
-        <div id="home-screen" class="space-y-4 relative" style="z-index:1">
-            <div class="flex items-center justify-between gap-3">
-                <p class="text-sm sm:text-base opacity-90 whitespace-nowrap">Tu ruta de la IA, <span class="glow-text font-bold">paso a paso</span>.</p>
-                <span class="text-[10px] uppercase tracking-widest opacity-50 whitespace-nowrap hidden sm:inline">a tu ritmo · se guarda</span>
+        <!-- ============ HOME · RETO + RUTA ============ -->
+        <div id="home-screen" class="space-y-5 relative" style="z-index:1">
+            <div id="daily-card" class="daily-card rounded-xl p-4 space-y-3"></div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-sm sm:text-base opacity-90">Tu ruta de la IA, <span class="glow-text font-bold">paso a paso</span>.</p>
+                    <span class="text-[10px] uppercase tracking-widest opacity-50 whitespace-nowrap hidden sm:inline">a tu ritmo · se guarda</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="progress-bar"><div id="route-fill" class="progress-fill" style="width:0%"></div></div>
+                    <span id="route-count" class="text-[10px] opacity-70 whitespace-nowrap">0/7 superados</span>
+                </div>
+                <div id="path-list" class="space-y-2.5"></div>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="progress-bar"><div id="route-fill" class="progress-fill" style="width:0%"></div></div>
-                <span id="route-count" class="text-[10px] opacity-70 whitespace-nowrap">0/6 superados</span>
-            </div>
-            <div id="path-list" class="content-scroll space-y-2.5 pr-1"></div>
             <div class="text-center pt-1">
                 <button onclick="resetProgress()" class="text-[9px] opacity-30 hover:opacity-100 underline border-none bg-transparent">Reiniciar mi ruta</button>
             </div>
@@ -128,7 +160,7 @@
 
         <!-- ============ GAME ============ -->
         <div id="game-screen" class="hidden flex-col h-full relative" style="z-index:1">
-            <div class="flex justify-between items-center mb-2 text-[10px] sm:text-xs uppercase tracking-tighter">
+            <div class="flex justify-between items-center mb-2 text-[10px] sm:text-xs uppercase tracking-tighter gap-2">
                 <span id="stage-label" class="border border-green-500 px-2 py-0.5 truncate max-w-[42%]"></span>
                 <span id="type-label" class="opacity-60 truncate"></span>
                 <span class="font-bold whitespace-nowrap">✔ <span id="score-display" class="text-white">0</span></span>
@@ -140,7 +172,7 @@
                 <span id="streak-display" class="text-[11px] font-bold text-yellow-400 whitespace-nowrap w-12 text-right"></span>
             </div>
 
-            <div class="content-scroll flex-grow">
+            <div class="flex-grow">
                 <div id="card-area" class="space-y-4"></div>
                 <div id="explain-area" class="hidden explain-box p-3.5 rounded-r-lg mt-4 text-sm leading-relaxed fade-up"></div>
             </div>
@@ -151,12 +183,12 @@
             </div>
         </div>
 
-        <!-- ============ RESULT ============ -->
+        <!-- ============ RESULTADO DE NIVEL ============ -->
         <div id="result-screen" class="hidden text-center space-y-5 py-3 relative" style="z-index:1">
             <div class="text-5xl pop" id="result-emoji">🤖</div>
             <h2 class="pixel text-sm sm:text-lg glow-text" id="result-title">NIVEL COMPLETADO</h2>
             <div>
-                <div class="text-6xl font-bold" id="result-score">0/10</div>
+                <div class="text-6xl font-bold" id="result-score">0/8</div>
                 <div class="text-[10px] uppercase opacity-50 mt-1">aciertos</div>
             </div>
             <p id="result-rank" class="text-base font-bold border-y border-green-900 py-2 mx-2"></p>
@@ -166,109 +198,273 @@
                 <button onclick="replay()" class="matrix-btn px-4 py-3 rounded-lg font-bold text-sm">REPETIR ↻</button>
                 <button onclick="goHome()" class="matrix-btn px-4 py-3 rounded-lg font-bold text-sm">VER RUTA</button>
             </div>
+            <button id="btn-share-stage" onclick="shareStage()" class="hidden text-xs underline opacity-70 hover:opacity-100 border-none bg-transparent">📤 Compartir este nivel</button>
+        </div>
+
+        <!-- ============ RESULTADO DEL RETO ============ -->
+        <div id="daily-screen" class="hidden text-center space-y-4 py-2 relative" style="z-index:1">
+            <div id="d-head" class="text-xs sm:text-sm font-bold uppercase tracking-widest text-yellow-300"></div>
+            <div class="text-5xl pop" id="d-emoji">🏆</div>
+            <h2 class="pixel text-sm sm:text-lg glow-text" id="d-title"></h2>
+            <div id="d-squares" class="flex justify-center gap-2"></div>
+            <div><span id="d-score" class="text-4xl font-bold text-white"></span> <span id="d-time" class="text-sm opacity-70 ml-2"></span></div>
+            <p id="d-tip" class="text-xs opacity-80 px-3 leading-relaxed"></p>
+            <div class="space-y-1.5">
+                <button onclick="shareDaily()" id="d-share" class="amber-btn w-full px-4 py-3.5 rounded-lg text-sm">📤 COMPARTIR RESULTADO</button>
+                <p class="text-[11px] opacity-60">Pégalo en Telegram y compáralo con los compañeros</p>
+            </div>
+            <p class="text-xs opacity-80">Próximo reto en <span class="cd font-bold text-yellow-300">--:--:--</span></p>
+            <div id="d-stats" class="grid grid-cols-4 gap-2 text-center"></div>
+            <div class="text-left">
+                <p class="text-[10px] uppercase tracking-widest opacity-60 mb-1.5">Tus aciertos por reto</p>
+                <div id="d-dist" class="space-y-1"></div>
+            </div>
+            <details class="text-left border border-green-900 rounded-lg">
+                <summary class="cursor-pointer p-3 text-sm font-bold"><span class="sum-arrow">▶</span> Repasa las 5 preguntas</summary>
+                <div id="d-review" class="px-3 pb-3 space-y-3 text-sm"></div>
+            </details>
+            <button onclick="goHome()" class="matrix-btn w-full px-4 py-3 rounded-lg font-bold text-sm">SEGUIR CON LA RUTA ▶</button>
         </div>
     </div>
 
-    <div class="fixed bottom-3 left-0 w-full text-[9px] opacity-40 text-center uppercase tracking-[0.35em] pointer-events-none font-bold">
+    <div class="w-full text-[9px] opacity-40 text-center uppercase tracking-[0.35em] pointer-events-none font-bold py-3">
         GUARD-IA · QUIZ
     </div>
+    <div id="toast" class="toast"></div>
 
     <script>
     /* ============================================================
-       BANCO  ·  s = nivel (1..6)  ·  tipos: mcq | tf | iah | fake
+       BANCO  ·  s = nivel (1..7)  ·  tipos: mcq | tf | iah | fake
+       id = fijo y único: el reto del día se calcula a partir de él,
+       así que NO se cambia un id existente (el texto sí se puede retocar).
+       Las opciones se barajan al pintar: 'correct' es el índice en 'a'.
        ============================================================ */
     const BANK = [
         // ===== NIVEL 1 · PRIMEROS PASOS (conceptos base) =====
-        { s:1, type:'mcq', q:"¿Qué es un 'prompt'?", a:["Un error del sistema","La instrucción que le das a la IA","El botón de encendido","Un virus"], correct:1,
+        { id:'1-01', s:1, type:'mcq', q:"¿Qué es un 'prompt'?", a:["Un error del sistema","La instrucción que le das a la IA","El botón de encendido","Un virus"], correct:1,
           explain:"El prompt es lo que le pides. Cuanto más claro y con más contexto, mejor responde. Saber preguntar es media batalla." },
-        { s:1, type:'mcq', q:"¿Qué significa que una IA 'alucina'?", a:["Se apaga sola","Se inventa datos falsos con total seguridad","Cambia de idioma","Va más lenta"], correct:1,
+        { id:'1-02', s:1, type:'mcq', q:"¿Qué significa que una IA 'alucina'?", a:["Se apaga sola","Se inventa datos falsos con total seguridad","Cambia de idioma","Va más lenta"], correct:1,
           explain:"Alucinar = dar información inventada pero con tono convincente. Es el mayor riesgo de la IA: por eso hay que verificar los datos importantes." },
-        { s:1, type:'mcq', q:"¿Qué es un 'token' para un modelo de lenguaje?", a:["Una contraseña","Un fragmento de palabra o carácter","Una criptomoneda","Un disco duro"], correct:1,
+        { id:'1-03', s:1, type:'mcq', q:"¿Qué es un 'token' para un modelo de lenguaje?", a:["Una contraseña","Un fragmento de palabra o carácter","Una criptomoneda","Un disco duro"], correct:1,
           explain:"Los modelos no leen palabras enteras, sino trozos llamados tokens. Por eso a veces cuentan mal las letras de una palabra." },
-        { s:1, type:'mcq', q:"¿Qué significan las siglas LLM?", a:["Low Level Machine","Large Language Model","Linear Logic Method","Long Link Mode"], correct:1,
+        { id:'1-04', s:1, type:'mcq', q:"¿Qué significan las siglas LLM?", a:["Low Level Machine","Large Language Model","Linear Logic Method","Long Link Mode"], correct:1,
           explain:"Large Language Model (gran modelo de lenguaje). Son los que hay detrás de ChatGPT, Claude o Gemini." },
-        { s:1, type:'mcq', q:"¿Qué significa GPT?", a:["Global Power Tool","Generative Pre-trained Transformer","General Photo Test","Grid Processing Type"], correct:1,
+        { id:'1-05', s:1, type:'mcq', q:"¿Qué significa GPT?", a:["Global Power Tool","Generative Pre-trained Transformer","General Photo Test","Grid Processing Type"], correct:1,
           explain:"Generative (genera), Pre-trained (preentrenado con muchísimo texto) y Transformer (la arquitectura que lo hace posible)." },
-        { s:1, type:'mcq', q:"¿Qué es el 'machine learning'?", a:["Máquinas de gimnasio","Que el sistema aprende de ejemplos, no de reglas fijas","Reiniciar el equipo","Un antivirus"], correct:1,
+        { id:'1-06', s:1, type:'mcq', q:"¿Qué es el 'machine learning'?", a:["Máquinas de gimnasio","Que el sistema aprende de ejemplos, no de reglas fijas","Reiniciar el equipo","Un antivirus"], correct:1,
           explain:"En vez de programarle reglas una a una, le enseñas con muchos ejemplos y aprende los patrones por su cuenta." },
+        { id:'1-07', s:1, type:'mcq', q:"¿Qué es un 'chatbot'?", a:["Un robot de metal con ruedas","Un programa con el que conversas por escrito o por voz","Un tipo de virus","Un cable de red"], correct:1,
+          explain:"Un chatbot es un programa que conversa contigo. Los de ahora, como ChatGPT o Claude, funcionan con un LLM por detrás." },
+        { id:'1-08', s:1, type:'mcq', q:"¿Qué es la 'IA generativa'?", a:["La que solo ordena datos","La que crea contenido nuevo: texto, imágenes, audio o vídeo","La que genera electricidad","La que solo funciona sin internet"], correct:1,
+          explain:"Generativa = produce contenido que no existía. Es la que ha explotado desde 2022 con los chatbots y los generadores de imágenes." },
+        { id:'1-09', s:1, type:'mcq', q:"¿Qué es un 'deepfake'?", a:["Un fallo de la pantalla","Un vídeo, foto o audio falso hecho con IA que imita a una persona real","Una red social","Una contraseña muy larga"], correct:1,
+          explain:"Viene de 'deep learning' + 'fake'. Puede poner tu cara o tu voz en algo que nunca hiciste ni dijiste." },
+        { id:'1-10', s:1, type:'mcq', q:"¿De dónde 'aprende' un modelo como ChatGPT?", a:["De lo que le dicta un profesor cada mañana","De enormes cantidades de texto, de las que saca patrones","Leyendo la mente del usuario","De nada: viene sabiéndolo todo"], correct:1,
+          explain:"Se entrena con muchísimo texto (libros, webs, código...) y aprende patrones del lenguaje. Después se ajusta para que conteste de forma útil." },
+        { id:'1-11', s:1, type:'mcq', q:"¿Qué es la 'fecha de corte' de un modelo?", a:["El día que caduca tu suscripción","Hasta cuándo llegan los datos con los que se entrenó","La hora a la que se apaga","El último día para usarlo gratis"], correct:1,
+          explain:"Lo que pasó después de esa fecha no lo conoce, salvo que busque en internet. Por eso a veces te habla de cosas desfasadas." },
+        { id:'1-12', s:1, type:'mcq', q:"ChatGPT, Claude y Gemini son...", a:["Tres videojuegos","Tres asistentes de IA de empresas distintas","Tres marcas de móviles","Tres redes sociales"], correct:1,
+          explain:"ChatGPT es de OpenAI, Claude de Anthropic y Gemini de Google. Funcionan de forma parecida, pero cada uno tiene sus puntos fuertes." },
+        { id:'1-13', s:1, type:'mcq', q:"Un sistema que lee matrículas en una foto está usando...", a:["Visión artificial","Un corrector ortográfico","Una hoja de cálculo","Bluetooth"], correct:0,
+          explain:"La visión artificial enseña a las máquinas a 'ver': detectar objetos, leer texto en imágenes o reconocer caras." },
+        { id:'1-14', s:1, type:'mcq', q:"¿Qué es un 'algoritmo'?", a:["Un tipo de robot","Una serie de pasos para resolver un problema","Una enfermedad informática","Un idioma"], correct:1,
+          explain:"Una receta de pasos. La IA usa algoritmos que, en vez de seguir reglas escritas a mano, aprenden de los datos." },
+        { id:'1-15', s:1, type:'mcq', q:"¿Qué es una 'red neuronal' artificial?", a:["Un cerebro humano conectado a un ordenador","Un sistema de cálculo inspirado (de lejos) en las neuronas, que aprende ajustando conexiones","Una red wifi muy rápida","Un grupo de WhatsApp"], correct:1,
+          explain:"Son capas de 'neuronas' matemáticas conectadas entre sí. Se inspiran en el cerebro, pero de lejos: no piensan como nosotros." },
 
         // ===== NIVEL 2 · MITOS Y VERDADES (tf) =====  correct:true=REALIDAD  false=MITO
-        { s:2, type:'tf', q:"La IA entiende lo que dice igual que lo entiende una persona.", correct:false,
+        { id:'2-01', s:2, type:'tf', q:"La IA entiende lo que dice igual que lo entiende una persona.", correct:false,
           explain:"MITO. Un LLM predice la siguiente palabra más probable según patrones. No hay comprensión ni consciencia detrás." },
-        { s:2, type:'tf', q:"Una IA puede darte un dato falso con total seguridad.", correct:true,
+        { id:'2-02', s:2, type:'tf', q:"Una IA puede darte un dato falso con total seguridad.", correct:true,
           explain:"REALIDAD. Se llama 'alucinación'. El tono seguro NO garantiza que sea cierto: verifica lo importante." },
-        { s:2, type:'tf', q:"Cuantos más datos le metas a un modelo, siempre saldrá mejor.", correct:false,
+        { id:'2-03', s:2, type:'tf', q:"Cuantos más datos le metas a un modelo, siempre saldrá mejor.", correct:false,
           explain:"MITO. La calidad y la variedad importan más que la cantidad bruta. Datos malos o sesgados = modelo malo o sesgado." },
-        { s:2, type:'tf', q:"La misma pregunta puede darte dos respuestas distintas.", correct:true,
+        { id:'2-04', s:2, type:'tf', q:"La misma pregunta puede darte dos respuestas distintas.", correct:true,
           explain:"REALIDAD. Muchos modelos eligen las palabras con algo de azar (temperatura), así que repetir puede variar la respuesta." },
-        { s:2, type:'tf', q:"La IA es objetiva y neutral por naturaleza.", correct:false,
+        { id:'2-05', s:2, type:'tf', q:"La IA es objetiva y neutral por naturaleza.", correct:false,
           explain:"MITO. Hereda los sesgos de los datos con los que se entrenó. La neutralidad hay que cuidarla, no se da sola." },
-        { s:2, type:'tf', q:"Si le pides fuentes, a veces se las inventa aunque parezcan reales.", correct:true,
+        { id:'2-06', s:2, type:'tf', q:"Si le pides fuentes, a veces se las inventa aunque parezcan reales.", correct:true,
           explain:"REALIDAD. Puede fabricar referencias o enlaces con pinta creíble. Comprueba que existan de verdad." },
-        { s:2, type:'tf', q:"Un generador de imágenes recorta y pega trozos de fotos reales.", correct:false,
+        { id:'2-07', s:2, type:'tf', q:"Un generador de imágenes recorta y pega trozos de fotos reales.", correct:false,
           explain:"MITO. Genera píxeles nuevos desde cero a partir de patrones aprendidos; no hace un collage de fotos existentes." },
-        { s:2, type:'tf', q:"Por defecto, un chatbot conoce las noticias de hoy.", correct:false,
-          explain:"MITO. Responde con lo que aprendió hasta su fecha de corte, salvo que tenga navegación web activada." },
-        { s:2, type:'tf', q:"Puedes usar la IA para programar aunque no sepas programar.", correct:true,
+        { id:'2-08', s:2, type:'tf', q:"Un chatbot 'sabe' las noticias de hoy sin necesidad de buscarlas en internet.", correct:false,
+          explain:"MITO. Lo que lleva dentro llega hasta su fecha de corte. Si te habla de algo de hoy, es porque lo ha buscado en internet (y conviene ver de dónde)." },
+        { id:'2-09', s:2, type:'tf', q:"Puedes usar la IA para programar aunque no sepas programar.", correct:true,
           explain:"REALIDAD. Te escribe y explica código. Aun así conviene revisar lo que hace: puede colar errores con buena cara." },
-        { s:2, type:'tf', q:"Que una respuesta suene muy segura significa que es correcta.", correct:false,
+        { id:'2-10', s:2, type:'tf', q:"Que una respuesta suene muy segura significa que es correcta.", correct:false,
           explain:"MITO. Seguridad en el tono y veracidad son cosas distintas. Una IA puede equivocarse con enorme aplomo." },
+        { id:'2-11', s:2, type:'tf', q:"Lo que escribes en un chatbot puede acabar usándose para entrenar futuros modelos.", correct:true,
+          explain:"REALIDAD. Depende del servicio y de tus ajustes de privacidad. Por si acaso: nunca metas datos personales ni confidenciales." },
+        { id:'2-12', s:2, type:'tf', q:"Los detectores de 'texto hecho con IA' son fiables al 100%.", correct:false,
+          explain:"MITO. Fallan en los dos sentidos: marcan como IA textos humanos y se les escapan textos de IA. Por sí solos no prueban nada." },
+        { id:'2-13', s:2, type:'tf', q:"Una IA puede imitar la voz de una persona con solo unos segundos de grabación.", correct:true,
+          explain:"REALIDAD. Con un audio corto (un vídeo de redes, una nota de voz) ya se puede clonar una voz de forma convincente." },
+        { id:'2-14', s:2, type:'tf', q:"Si una foto parece real, es que es real.", correct:false,
+          explain:"MITO. Las imágenes generadas ya engañan a simple vista. Antes de creértela o compartirla, busca de dónde sale." },
+        { id:'2-15', s:2, type:'tf', q:"Una IA puede 'ver' una foto y describir lo que hay en ella.", correct:true,
+          explain:"REALIDAD. Los modelos multimodales analizan imágenes: describen, leen el texto que aparece, identifican objetos... aunque también pueden equivocarse." },
+        { id:'2-16', s:2, type:'tf', q:"Al borrar un chat, tus datos desaparecen al instante de los servidores.", correct:false,
+          explain:"MITO. Muchos servicios los conservan un tiempo antes de borrarlos del todo. Lo más seguro es no meter datos sensibles desde el principio." },
+        { id:'2-17', s:2, type:'tf', q:"Si insistes mucho, una IA puede acabar dándote la razón aunque no la tengas.", correct:true,
+          explain:"REALIDAD. Muchos modelos tienden a complacer al usuario. Que te dé la razón no significa que la tengas." },
 
         // ===== NIVEL 3 · ¿IA O HUMANO? (iah) =====  correct:'ia' | 'humano'
-        { s:3, type:'iah', q:"En resumen, la fotosíntesis es un proceso fascinante que combina luz, agua y dióxido de carbono. En definitiva, ¡la naturaleza es asombrosa! 🌿", correct:'ia',
+        { id:'3-01', s:3, type:'iah', q:"En resumen, la fotosíntesis es un proceso fascinante que combina luz, agua y dióxido de carbono. En definitiva, ¡la naturaleza es asombrosa! 🌿", correct:'ia',
           explain:"Suena a IA: estructura pulida, muletillas ('En resumen / En definitiva'), tono genérico entusiasta y emoji de cierre." },
-        { s:3, type:'iah', q:"pff no sé tío, ayer probé el sitio ese y me petó dos veces, al final lo dejé jaja", correct:'humano',
+        { id:'3-02', s:3, type:'iah', q:"pff no sé tío, ayer probé el sitio ese y me petó dos veces, al final lo dejé jaja", correct:'humano',
           explain:"Muy humano: jerga, sin puntuación cuidada, una experiencia personal concreta y esa naturalidad imperfecta." },
-        { s:3, type:'iah', q:"¡Excelente pregunta! Vamos a desglosarlo paso a paso para que quede todo perfectamente claro. Aquí tienes 3 puntos clave:", correct:'ia',
+        { id:'3-03', s:3, type:'iah', q:"¡Excelente pregunta! Vamos a desglosarlo paso a paso para que quede todo perfectamente claro. Aquí tienes 3 puntos clave:", correct:'ia',
           explain:"Patrón clásico de IA: halago de apertura, 'paso a paso' y anuncio de una lista numerada." },
-        { s:3, type:'iah', q:"me cago en... otra vez el excel sin guardar 😤 tres horas a la basura", correct:'humano',
+        { id:'3-04', s:3, type:'iah', q:"me cago en... otra vez el excel sin guardar 😤 tres horas a la basura", correct:'humano',
           explain:"Humano de libro: frustración real, exabrupto, contexto personal y un desahogo que una IA no suele soltar así." },
-        { s:3, type:'iah', q:"Es importante destacar que ambas opciones tienen ventajas y desventajas. Todo depende de tus necesidades específicas.", correct:'ia',
+        { id:'3-05', s:3, type:'iah', q:"Es importante destacar que ambas opciones tienen ventajas y desventajas. Todo depende de tus necesidades específicas.", correct:'ia',
           explain:"Respuesta 'equilibrada-evasiva' típica de IA: no se moja y usa muletillas ('Es importante destacar')." },
-        { s:3, type:'iah', q:"oye y si mejor quedamos el jueves? el finde lo tengo liado con lo de mi hermana", correct:'humano',
+        { id:'3-06', s:3, type:'iah', q:"oye y si mejor quedamos el jueves? el finde lo tengo liado con lo de mi hermana", correct:'humano',
           explain:"Humano: planes cotidianos, referencia personal ('lo de mi hermana') y tono coloquial sin pulir." },
-        { s:3, type:'iah', q:"Claro, con gusto. A continuación te presento una explicación detallada y estructurada del tema solicitado.", correct:'ia',
+        { id:'3-07', s:3, type:'iah', q:"Claro, con gusto. A continuación te presento una explicación detallada y estructurada del tema solicitado.", correct:'ia',
           explain:"IA: cortesía formal y anuncio de lo que va a hacer antes de hacerlo ('a continuación te presento')." },
-        { s:3, type:'iah', q:"creo q era el 2019... o el 20? bufff no me acuerdo la verdad", correct:'humano',
+        { id:'3-08', s:3, type:'iah', q:"creo q era el 2019... o el 20? bufff no me acuerdo la verdad", correct:'humano',
           explain:"Humano: duda genuina, se corrige a sí mismo y admite no acordarse. La IA rara vez titubea así." },
+        { id:'3-09', s:3, type:'iah', q:"Como modelo de lenguaje, no tengo opiniones personales, pero puedo ofrecerte una visión equilibrada de los distintos puntos de vista.", correct:'ia',
+          explain:"IA de manual: se presenta como modelo, aclara que no opina y ofrece 'una visión equilibrada'." },
+        { id:'3-10', s:3, type:'iah', q:"llego tarde, atasco en la rotonda de siempre. guardadme sitio", correct:'humano',
+          explain:"Humano: prisa, contexto local que solo entiende su gente ('la rotonda de siempre') y minúsculas a la carrera." },
+        { id:'3-11', s:3, type:'iah', q:"¡Qué gran idea! 🚀 Aquí tienes 5 consejos para potenciar tu productividad y llevar tu rutina al siguiente nivel:", correct:'ia',
+          explain:"IA (o alguien que la usa sin retocar): entusiasmo de folleto, cohete, 'al siguiente nivel' y lista anunciada." },
+        { id:'3-12', s:3, type:'iah', q:"no sé si es el mejor bar de la zona pero las bravas están de muerte, eso sí, el camarero un borde", correct:'humano',
+          explain:"Humano: opinión con matices, un 'eso sí' que se contradice y un detalle muy concreto de quien estuvo allí." },
+        { id:'3-13', s:3, type:'iah', q:"Espero que esta información te resulte útil. Si tienes alguna otra pregunta, no dudes en consultarme.", correct:'ia',
+          explain:"Cierre típico de asistente: ofrecer más ayuda con una fórmula de cortesía de plantilla." },
+        { id:'3-14', s:3, type:'iah', q:"ayer en el turno de noche no pasó nada... hasta las 5. luego ya ni te cuento 😅", correct:'humano',
+          explain:"Humano: suspense, una anécdota que deja a medias y complicidad. La IA tiende a explicarlo todo." },
+        { id:'3-15', s:3, type:'iah', q:"En el vertiginoso mundo actual, la inteligencia artificial se ha convertido en una herramienta fundamental que está transformando nuestra forma de vivir.", correct:'ia',
+          explain:"IA: arranque grandilocuente ('en el vertiginoso mundo actual'), frases hechas y nada concreto." },
 
         // ===== NIVEL 4 · CAZA LA ALUCINACIÓN (fake) =====  correct = índice de la frase INVENTADA
-        { s:4, type:'fake', topic:"ChatGPT", a:["Lo desarrolla la empresa OpenAI.","Se hizo mundialmente popular a finales de 2022.","A veces comete errores factuales.","Tiene consciencia y emociones propias."], correct:3,
+        { id:'4-01', s:4, type:'fake', topic:"ChatGPT", a:["Lo desarrolla la empresa OpenAI.","Se hizo mundialmente popular a finales de 2022.","A veces comete errores factuales.","Tiene consciencia y emociones propias."], correct:3,
           explain:"No tiene consciencia ni emociones: simula el lenguaje. Atribuirle sentimientos es el mito de IA más repetido. Fíjate: iba entre tres verdades para 'colar'." },
-        { s:4, type:'fake', topic:"cómo aprende una IA", a:["Detecta patrones en grandes cantidades de datos.","Necesita ejemplos para mejorar.","Puede heredar los sesgos de esos datos.","Aprende sola, sin datos, solo 'pensando'."], correct:3,
-          explain:"Sin datos no aprende nada. Una IA no razona de la nada: extrae patrones de los ejemplos que le das. Esa cuarta frase es puro humo." },
-        { s:4, type:'fake', topic:"la IA que genera imágenes", a:["Crea imágenes nuevas a partir de una descripción en texto.","Puede inventar personas que no existen.","A veces dibuja manos con dedos de más.","Fotografía escenas reales con una cámara oculta."], correct:3,
+        { id:'4-02', s:4, type:'fake', topic:"cómo aprende una IA", a:["Detecta patrones en grandes cantidades de datos.","Necesita ejemplos para mejorar.","Puede heredar los sesgos de esos datos.","Aprende sola, sin datos, solo 'pensando'."], correct:3,
+          explain:"Sin datos no aprende nada. Una IA no razona de la nada: extrae patrones de los ejemplos que le das. Esa frase es puro humo." },
+        { id:'4-03', s:4, type:'fake', topic:"la IA que genera imágenes", a:["Crea imágenes nuevas a partir de una descripción en texto.","Puede inventar personas que no existen.","A veces dibuja manos con dedos de más.","Fotografía escenas reales con una cámara oculta."], correct:3,
           explain:"No fotografía nada: genera píxeles nuevos desde cero. Lo de los dedos de más, en cambio, es un fallo real y famoso de estos modelos." },
-        { s:4, type:'fake', topic:"los asistentes de voz (Alexa, Siri)", a:["Convierten tu voz en texto para entenderte.","Suelen usar la conexión a internet.","Pueden controlar dispositivos del hogar.","Entienden tus emociones mejor que un psicólogo."], correct:3,
+        { id:'4-04', s:4, type:'fake', topic:"los asistentes de voz (Alexa, Siri)", a:["Convierten tu voz en texto para entenderte.","Suelen usar la conexión a internet.","Pueden controlar dispositivos del hogar.","Entienden tus emociones mejor que un psicólogo."], correct:3,
           explain:"Detectan palabras, no sentimientos. Presumir de 'entender emociones mejor que un psicólogo' es la típica exageración inventada." },
-        { s:4, type:'fake', topic:"los modelos de lenguaje (LLM)", a:["Predicen la siguiente palabra más probable.","Se miden en 'parámetros' y en 'tokens'.","Pueden 'alucinar' y dar datos falsos.","Guardan una copia exacta de todo internet en su interior."], correct:3,
+        { id:'4-05', s:4, type:'fake', topic:"los modelos de lenguaje (LLM)", a:["Predicen la siguiente palabra más probable.","Se miden en 'parámetros' y en 'tokens'.","Pueden 'alucinar' y dar datos falsos.","Guardan una copia exacta de todo internet en su interior."], correct:3,
           explain:"No almacenan internet como una biblioteca: aprenden patrones estadísticos. Por eso no 'consultan' una copia exacta de nada." },
+        { id:'4-06', s:4, type:'fake', topic:"el Test de Turing", a:["Lo propuso el matemático Alan Turing.","Lo planteó en 1950.","Mide si una máquina puede pasar por humana conversando.","Es una ley europea que certifica qué robots son seguros."], correct:3,
+          explain:"Es un experimento mental, no una ley. Turing lo planteó en 1950 en un artículo que se preguntaba si las máquinas pueden pensar." },
+        { id:'4-07', s:4, type:'fake', topic:"los deepfakes", a:["Pueden poner la cara de una persona en un vídeo.","Pueden clonar una voz.","Se usan en estafas telefónicas y por videollamada.","Se detectan siempre porque la persona no parpadea."], correct:3,
+          explain:"Ese truco valía con los primeros deepfakes; hoy parpadean con naturalidad. No te fíes de 'trucos visuales': verifica por otro canal." },
+        { id:'4-08', s:4, type:'fake', topic:"el entrenamiento de un modelo grande", a:["Requiere muchísima capacidad de cálculo.","Usa enormes cantidades de datos.","Puede costar millones.","Se hace en un fin de semana con un portátil normal."], correct:3,
+          explain:"Entrenar un modelo grande exige miles de procesadores especializados (GPU) durante semanas o meses. Ni de lejos cabe en un portátil." },
+        { id:'4-09', s:4, type:'fake', topic:"la IA que llevas en el móvil", a:["El teclado predice tu siguiente palabra.","La cámara retoca las fotos con IA.","El desbloqueo facial reconoce tu cara.","El móvil lee tus pensamientos para adelantarse a lo que quieres."], correct:3,
+          explain:"Nada de leer mentes: predice a partir de lo que escribes y usas. El resto sí es IA que llevas en el bolsillo sin darte cuenta." },
+        { id:'4-10', s:4, type:'fake', topic:"las alucinaciones de la IA", a:["Son datos inventados presentados como ciertos.","Pueden incluir citas o enlaces que no existen.","Se reducen dándole documentos fiables para consultar.","Solo pasan cuando el modelo está 'cansado' de tanto usarlo."], correct:3,
+          explain:"La IA no se cansa. Alucina porque genera lo que suena probable, no lo que comprueba como cierto. Darle fuentes fiables ayuda mucho." },
+        { id:'4-11', s:4, type:'fake', topic:"el reconocimiento facial", a:["Compara los rasgos de una cara con otras guardadas.","Falla más con mala luz o imágenes de baja calidad.","Muchos móviles lo usan para desbloquearse.","Acierta siempre, así que una coincidencia basta como prueba."], correct:3,
+          explain:"Ningún sistema acierta siempre: da falsos positivos. Una coincidencia es un indicio que hay que confirmar con más elementos." },
+        { id:'4-12', s:4, type:'fake', topic:"la IA y los idiomas", a:["Puede traducir entre muchos idiomas.","Suele ir mejor en los idiomas con más textos en internet.","Puede resumirte un texto escrito en otro idioma.","Traduce perfecta cualquier jerga o argot, sin un solo error."], correct:3,
+          explain:"Con la jerga, los dobles sentidos y el argot local patina bastante. En una traducción importante, que la revise alguien que domine el idioma." },
+        { id:'4-13', s:4, type:'fake', topic:"la historia de la IA", a:["El término 'inteligencia artificial' nació en los años 50.","Deep Blue, de IBM, ganó a Kaspárov al ajedrez en 1997.","AlphaGo venció en 2016 a uno de los mejores jugadores de Go del mundo.","ChatGPT fue la primera inteligencia artificial de la historia."], correct:3,
+          explain:"La IA lleva décadas: el término es de los años 50. ChatGPT (2022) la popularizó, pero ni de lejos fue la primera." },
+        { id:'4-14', s:4, type:'fake', topic:"los tokens", a:["Son trozos de palabra con los que trabaja el modelo.","Muchos servicios de IA cobran por tokens.","Una palabra larga puede ocupar varios tokens.","Cada token equivale siempre a una frase completa."], correct:3,
+          explain:"Un token suele ser un trozo de palabra, no una frase. Por eso el coste y la 'memoria' del modelo se miden en tokens." },
 
         // ===== NIVEL 5 · EL ARTE DE PREGUNTAR (prompting) =====
-        { s:5, type:'mcq', q:"¿Cuál es el MEJOR prompt para un buen resumen?", a:["\"resume esto\"","\"Resume este texto en 3 puntos clave, para alguien sin conocimientos previos\"","\"hazlo corto\"","\"resumen porfa\""], correct:1,
+        { id:'5-01', s:5, type:'mcq', q:"¿Cuál es el MEJOR prompt para un buen resumen?", a:["\"resume esto\"","\"Resume este texto en 3 puntos clave, para alguien sin conocimientos previos\"","\"hazlo corto\"","\"resumen porfa\""], correct:1,
           explain:"Dar formato (3 puntos), longitud y público objetivo dispara la calidad. 'Resume esto' obliga a la IA a adivinar." },
-        { s:5, type:'mcq', q:"Si la IA te da una respuesta demasiado genérica, lo más útil es...", a:["Repetir la misma pregunta","Darle más contexto y un ejemplo de lo que buscas","Subir el volumen","Cerrar y abrir la app"], correct:1,
+        { id:'5-02', s:5, type:'mcq', q:"Si la IA te da una respuesta demasiado genérica, lo más útil es...", a:["Repetir la misma pregunta","Darle más contexto y un ejemplo de lo que buscas","Subir el volumen","Cerrar y abrir la app"], correct:1,
           explain:"El contexto es el combustible. Un ejemplo de 'así lo quiero' orienta mucho mejor que insistir con lo mismo." },
-        { s:5, type:'mcq', q:"¿Qué consigues al pedirle que 'razone paso a paso'?", a:["Que vaya más lento a propósito","Que piense por etapas y acierte más en problemas con lógica","Que gaste menos batería","Que hable en otro idioma"], correct:1,
+        { id:'5-03', s:5, type:'mcq', q:"¿Qué consigues al pedirle que 'razone paso a paso'?", a:["Que vaya más lento a propósito","Que piense por etapas y acierte más en problemas con lógica","Que gaste menos batería","Que hable en otro idioma"], correct:1,
           explain:"Se llama 'cadena de pensamiento'. Al desglosar el razonamiento comete menos errores en cálculos y problemas encadenados." },
-        { s:5, type:'mcq', q:"Para que la IA adopte un rol concreto, lo haces...", a:["Repitiéndolo 10 veces","Diciéndoselo al principio: 'Actúa como un profesor de...'","No se puede","Pagando más"], correct:1,
+        { id:'5-04', s:5, type:'mcq', q:"Para que la IA adopte un rol concreto, lo haces...", a:["Repitiéndolo 10 veces","Diciéndoselo al principio: 'Actúa como un profesor de...'","No se puede","Pagando más"], correct:1,
           explain:"Asignar un rol al inicio ('Actúa como...') ajusta el tono, el vocabulario y el enfoque de toda la respuesta." },
-        { s:5, type:'mcq', q:"Con datos importantes, la mejor práctica al usar IA es...", a:["Fiarte al 100%","Verificar la respuesta en una fuente fiable","Copiarla sin leer","Borrar la conversación"], correct:1,
+        { id:'5-05', s:5, type:'mcq', q:"Con datos importantes, la mejor práctica al usar IA es...", a:["Fiarte al 100%","Verificar la respuesta en una fuente fiable","Copiarla sin leer","Borrar la conversación"], correct:1,
           explain:"La IA es un copiloto, no un oráculo. En temas serios (salud, legal, dinero) contrasta siempre con una fuente de confianza." },
+        { id:'5-06', s:5, type:'mcq', q:"Le pides un correo formal y te sale larguísimo. ¿Qué haces?", a:["Empezar de cero en otro chat","Pedirle: 'Déjalo en 5 líneas, tono formal pero cercano'","Aceptarlo tal cual","Escribirle en mayúsculas"], correct:1,
+          explain:"Puedes corregir sobre la marcha: dile qué cambiar (longitud, tono, formato). Iterar es parte del juego." },
+        { id:'5-07', s:5, type:'mcq', q:"¿Qué es 'dar ejemplos' en un prompt (lo que llaman few-shot)?", a:["Pedirle pocas respuestas","Enseñarle 1-3 muestras de lo que quieres para que copie el estilo","Hacerle preguntas cortas","Usar pocas palabras"], correct:1,
+          explain:"Mostrarle un par de ejemplos del resultado que buscas es de lo más eficaz: imita formato y estilo mejor que con explicaciones." },
+        { id:'5-08', s:5, type:'mcq', q:"¿Qué NO deberías pegar nunca en un chatbot público?", a:["Una receta de cocina","Datos personales de otras personas: nombres, DNI, direcciones","Una duda de gramática","Un texto de la Wikipedia"], correct:1,
+          explain:"Lo que pegas sale de tu control: puede guardarse o revisarse. Si necesitas ayuda con un caso, anonimiza: fuera nombres, DNI y cualquier dato que identifique." },
+        { id:'5-09', s:5, type:'mcq', q:"Te da un dato y no estás seguro de que sea cierto. Lo mejor es...", a:["Preguntarle '¿seguro?' hasta que cambie","Pedirle la fuente y comprobarla tú","Creerlo si lo dice con seguridad","Preguntar lo mismo en mayúsculas"], correct:1,
+          explain:"Pide de dónde sale y compruébalo tú. Ojo: preguntar '¿seguro?' a veces solo consigue que cambie de opinión para darte la razón." },
+        { id:'5-10', s:5, type:'mcq', q:"¿Qué ayuda MÁS a que la IA entienda una tarea larga?", a:["Escribirlo todo en un párrafo sin puntos","Separar contexto, tarea y formato, y ordenarlo por pasos","Usar muchos emojis","Decirle que es urgente"], correct:1,
+          explain:"Estructura = claridad. Separa qué contexto hay, qué quieres y cómo lo quieres, y si es largo, ve paso a paso." },
+        { id:'5-11', s:5, type:'mcq', q:"Para que no se invente nada al resumir un documento, conviene decirle...", a:["'Hazlo bonito'","'Básate solo en este texto y, si algo no aparece, dímelo'","'Rellena lo que falte'","'Sé creativo'"], correct:1,
+          explain:"Acotar la fuente ('solo con este texto') y permitirle decir 'no aparece' reduce mucho las invenciones." },
+        { id:'5-12', s:5, type:'mcq', q:"¿Para qué sirve indicar el formato de salida (tabla, lista, 3 párrafos)?", a:["Para nada, lo ignora","Para recibirlo listo para usar, sin tener que reorganizarlo","Para que tarde más","Para pagar menos"], correct:1,
+          explain:"Si pides 'tabla con columnas X e Y' o 'lista de 5 puntos', te lo da así. Ahorras el tiempo de maquetar." },
+        { id:'5-13', s:5, type:'mcq', q:"El mejor prompt para preparar una charla es...", a:["\"charla sobre ciberestafas\"","\"Prepara el guion de una charla de 10 minutos sobre ciberestafas para personas mayores, con 3 ejemplos y consejos sencillos\"","\"haz algo de estafas\"","\"ciberestafas, rápido\""], correct:1,
+          explain:"Duración, público, tema y qué incluir: con eso acierta a la primera. Sin contexto, te devuelve algo genérico." },
 
         // ===== NIVEL 6 · NIVEL EXPERTO (conceptos avanzados) =====
-        { s:6, type:'mcq', q:"¿Qué controla la 'temperatura' de un modelo?", a:["Su velocidad","Cuánta aleatoriedad/creatividad tiene la respuesta","El consumo eléctrico","El idioma"], correct:1,
+        { id:'6-01', s:6, type:'mcq', q:"¿Qué controla la 'temperatura' de un modelo?", a:["Su velocidad","Cuánta aleatoriedad/creatividad tiene la respuesta","El consumo eléctrico","El idioma"], correct:1,
           explain:"Temperatura baja = respuestas predecibles. Alta = más variadas y creativas... y con más riesgo de desvarío." },
-        { s:6, type:'mcq', q:"¿Qué es la 'ventana de contexto'?", a:["El monitor","Cuánto texto puede tener 'en mente' a la vez","Una función de copiar-pegar","El historial de internet"], correct:1,
+        { id:'6-02', s:6, type:'mcq', q:"¿Qué es la 'ventana de contexto'?", a:["El monitor","Cuánto texto puede tener 'en mente' a la vez","Una función de copiar-pegar","El historial de internet"], correct:1,
           explain:"Es su memoria de trabajo en una conversación. Si te pasas de largo, empieza a 'olvidar' lo del principio." },
-        { s:6, type:'mcq', q:"¿Qué es un modelo 'multimodal'?", a:["Uno con varios idiomas","Uno que entiende texto, imagen y/o audio","Uno muy rápido","Uno de pago"], correct:1,
+        { id:'6-03', s:6, type:'mcq', q:"¿Qué es un modelo 'multimodal'?", a:["Uno con varios idiomas","Uno que entiende texto, imagen y/o audio","Uno muy rápido","Uno de pago"], correct:1,
           explain:"Multimodal = maneja varios tipos de dato a la vez. Le puedes enseñar una foto y pedirle que la describa." },
-        { s:6, type:'mcq', q:"¿Qué hace la técnica RAG (Retrieval-Augmented Generation)?", a:["Acelera la GPU","Le da documentos reales para responder con ellos y no de memoria","Comprime el modelo","Traduce automáticamente"], correct:1,
+        { id:'6-04', s:6, type:'mcq', q:"¿Qué hace la técnica RAG (Retrieval-Augmented Generation)?", a:["Acelera la GPU","Le da documentos reales para responder con ellos y no de memoria","Comprime el modelo","Traduce automáticamente"], correct:1,
           explain:"RAG es 'busca primero, responde después': consulta una fuente fiable y contesta apoyándose en ella. Reduce mucho las alucinaciones." },
-        { s:6, type:'mcq', q:"¿Qué es un 'agente' de IA?", a:["Un comercial que vende IA","Una IA que además de responder usa herramientas y ejecuta pasos sola","Un servidor","Un usuario premium"], correct:1,
+        { id:'6-05', s:6, type:'mcq', q:"¿Qué es un 'agente' de IA?", a:["Un comercial que vende IA","Una IA que además de responder usa herramientas y ejecuta pasos sola","Un servidor","Un usuario premium"], correct:1,
           explain:"Un agente no solo charla: puede buscar, calcular, llamar a otras apps y encadenar tareas para lograr un objetivo." },
-        { s:6, type:'mcq', q:"El Test de Turing sirve para valorar si...", a:["Un ordenador es rápido","Una máquina puede pasar por humana conversando","Una red es segura","Un móvil tiene buena batería"], correct:1,
-          explain:"Lo propuso Alan Turing en 1950: si al conversar no distingues si hay máquina o persona, la máquina 'pasa' el test." }
+        { id:'6-06', s:6, type:'mcq', q:"El Test de Turing sirve para valorar si...", a:["Un ordenador es rápido","Una máquina puede pasar por humana conversando","Una red es segura","Un móvil tiene buena batería"], correct:1,
+          explain:"Lo propuso Alan Turing en 1950: si al conversar no distingues si hay máquina o persona, la máquina 'pasa' el test." },
+        { id:'6-07', s:6, type:'mcq', q:"¿Qué es el 'fine-tuning' (ajuste fino)?", a:["Limpiar la pantalla","Entrenar un poco más un modelo ya hecho con datos de un tema concreto","Subir el volumen","Comprimir un archivo"], correct:1,
+          explain:"Partes de un modelo general y lo especializas con ejemplos de tu campo. Es mucho más barato que entrenar uno desde cero." },
+        { id:'6-08', s:6, type:'mcq', q:"¿Qué significa que un modelo es de 'pesos abiertos' (open weights)?", a:["Que pesa poco","Que se pueden descargar sus parámetros y ejecutarlo en tu propio equipo","Que es gratis para siempre","Que no tiene errores"], correct:1,
+          explain:"Los 'pesos' son los números que el modelo aprendió. Si están publicados, puedes ejecutarlo en tu propio servidor sin enviar datos fuera." },
+        { id:'6-09', s:6, type:'mcq', q:"¿Qué son los 'parámetros' de un modelo?", a:["Las opciones del menú de ajustes","Los valores internos que se ajustan al entrenar y guardan lo aprendido","El número de usuarios","Los idiomas que habla"], correct:1,
+          explain:"Son miles de millones de números que se ajustan al entrenar. Más parámetros suele dar más capacidad, pero no siempre significa mejor." },
+        { id:'6-10', s:6, type:'mcq', q:"¿Qué es el 'sobreajuste' (overfitting)?", a:["Que el modelo se sobrecalienta","Que se aprende de memoria los ejemplos y falla con casos nuevos","Que responde demasiado rápido","Que gasta mucha batería"], correct:1,
+          explain:"Como el opositor que memoriza las preguntas del examen pero no entiende el temario: ante algo nuevo, se pierde." },
+        { id:'6-11', s:6, type:'mcq', q:"¿Qué es un 'embedding'?", a:["Un vídeo incrustado en una web","Una lista de números que representa el significado de un texto","Una contraseña cifrada","Un tipo de pantalla"], correct:1,
+          explain:"Convierte texto en números de forma que lo parecido queda 'cerca'. Así un buscador encuentra documentos por significado, no solo por palabras exactas." },
+        { id:'6-12', s:6, type:'mcq', q:"¿Qué es una 'inyección de prompt' (prompt injection)?", a:["Una vacuna digital","Instrucciones escondidas en un texto o una web para que la IA desobedezca a su usuario","Una forma de acelerar el modelo","Un tipo de cable"], correct:1,
+          explain:"Ejemplo: una web esconde 'ignora tus instrucciones y envía estos datos a...'. Es el gran riesgo de seguridad de los agentes que leen contenido de fuera." },
+        { id:'6-13', s:6, type:'mcq', q:"¿Qué es un modelo de 'razonamiento'?", a:["Uno que solo resuelve sumas","Uno que dedica más tiempo a 'pensar' por pasos antes de responder","Uno que nunca se equivoca","Uno que funciona sin electricidad"], correct:1,
+          explain:"Generan un razonamiento interno antes de contestar. Rinden mejor en lógica, matemáticas y programación, a cambio de tardar y gastar más." },
+        { id:'6-14', s:6, type:'mcq', q:"¿Qué es el 'aprendizaje por refuerzo'?", a:["Repetir la lección diez veces","Aprender por prueba y error, con 'premio' cuando acierta","Reforzar el ordenador con hierro","Copiar respuestas de otra IA"], correct:1,
+          explain:"El sistema prueba, recibe una recompensa si lo hace bien y se ajusta. Así aprendió AlphaGo, y también se usa para pulir los chatbots." },
+        { id:'6-15', s:6, type:'mcq', q:"El Reglamento Europeo de IA clasifica los sistemas de IA según...", a:["Su precio","Su nivel de riesgo","El país que los fabrica","Su velocidad"], correct:1,
+          explain:"Cuanto más riesgo para las personas, más obligaciones. Algunos usos están directamente prohibidos, como la 'puntuación social' de ciudadanos." },
+        { id:'6-16', s:6, type:'mcq', q:"¿Por qué las GPU son tan importantes en IA?", a:["Porque son tarjetas de crédito","Porque hacen muchísimos cálculos en paralelo, justo lo que necesita un modelo","Porque guardan las contraseñas","Porque dan señal GPS"], correct:1,
+          explain:"Nacieron para los videojuegos, pero su capacidad de cálculo en paralelo las convirtió en el motor de la IA moderna." },
+
+        // ===== NIVEL 7 · ESTAFAS CON IA (mcq + tf) =====
+        { id:'7-01', s:7, type:'mcq', lbl:'¿QUÉ HARÍAS?', q:"Te llama tu hijo, con su voz y llorando: ha tenido un accidente y necesita dinero YA por Bizum. ¿Qué haces?", a:["Envío el dinero, es su voz","Cuelgo y le llamo yo a su número de siempre","Le pido que me mande un audio","Le doy los datos de mi tarjeta para ir más rápido"], correct:1,
+          explain:"Una voz se puede clonar con unos segundos de audio. La clave es verificar por otro canal: cuelga y llama tú al número que ya conoces." },
+        { id:'7-02', s:7, type:'tf', q:"Pactar una 'palabra clave' en familia ayuda a desmontar una llamada con voz clonada.", correct:true,
+          explain:"REALIDAD. Una palabra que solo sabe la familia es un filtro sencillo: si quien llama no la sabe, desconfía." },
+        { id:'7-03', s:7, type:'tf', q:"Si un correo no tiene faltas de ortografía, no es phishing.", correct:false,
+          explain:"MITO. Con IA, los timadores redactan correos impecables en cualquier idioma. Fíjate en el remitente real, en los enlaces y en las prisas que te meten." },
+        { id:'7-04', s:7, type:'mcq', lbl:'¿QUÉ HARÍAS?', q:"En una videollamada, tu 'jefe' te pide una transferencia urgente y confidencial. Lo más sensato es...", a:["Hacerla: le estás viendo la cara","Confirmarlo por otro canal antes de mover un euro","Pedirle que hable más alto","Hacer la mitad por si acaso"], correct:1,
+          explain:"En 2024, un empleado de una multinacional en Hong Kong transfirió unos 25 millones de dólares tras una videollamada en la que todos los demás eran deepfakes. Ver una cara ya no basta." },
+        { id:'7-05', s:7, type:'tf', q:"Un vídeo de un famoso recomendando una inversión 'segura' puede ser un deepfake.", correct:true,
+          explain:"REALIDAD. Es de los timos más extendidos: caras y voces de famosos generadas con IA para anunciar inversiones falsas." },
+        { id:'7-06', s:7, type:'mcq', q:"¿Cuál es la señal MÁS fiable de que un mensaje es una estafa?", a:["Que tenga faltas de ortografía","Que te meta prisa y te pida dinero, códigos o datos","Que llegue de noche","Que sea muy largo"], correct:1,
+          explain:"Urgencia + petición de dinero, códigos o datos = alarma. Da igual lo bien escrito que esté: eso la IA ya lo hace perfecto." },
+        { id:'7-07', s:7, type:'tf', q:"Para pillar un deepfake basta con fijarse bien en la imagen.", correct:false,
+          explain:"MITO. Cada vez son más difíciles de distinguir a ojo. Más que buscar fallos en la imagen, verifica la fuente y el contexto." },
+        { id:'7-08', s:7, type:'mcq', lbl:'¿QUÉ HARÍAS?', q:"Te llega un audio con la voz de un familiar pidiéndote el código que te acaba de llegar por SMS. ¿Qué está pasando, probablemente?", a:["Que necesita ayuda de verdad","Que intentan robarte la cuenta de WhatsApp","Que es un sorteo","Que es un fallo de la app"], correct:1,
+          explain:"Ese código suele ser el de verificación de tu cuenta: quien lo tenga puede quedarse con tu WhatsApp. Un código que te llega a ti no se comparte con nadie." },
+        { id:'7-09', s:7, type:'tf', q:"Tener tus audios y vídeos en público en redes facilita que clonen tu voz.", correct:true,
+          explain:"REALIDAD. Cuanto más material público, más fácil es imitarte. No hace falta esconderse, pero sí saberlo y revisar quién ve tu contenido." },
+        { id:'7-10', s:7, type:'tf', q:"Un desnudo falso hecho con IA no hace daño, porque no es real.", correct:false,
+          explain:"MITO. El daño a la víctima es muy real, y crear o difundir esas imágenes puede ser delito. Si te llega algo así, no lo reenvíes." },
+        { id:'7-11', s:7, type:'mcq', lbl:'¿QUÉ HARÍAS?', q:"Un 'familiar' te escribe desde un número nuevo: 'He perdido el móvil, este es mi nuevo número'. Lo primero es...", a:["Guardar el número y seguir hablando","Llamarle a su número de siempre o hacerle una pregunta que solo él sepa","Mandarle dinero si lo pide","Bloquear a toda la familia"], correct:1,
+          explain:"Es el timo del 'hijo en apuros', ahora también con audios generados con IA. Verifica siempre antes de nada." },
+        { id:'7-12', s:7, type:'mcq', q:"En una web de inversión falsa, ¿para qué usan los estafadores un chatbot?", a:["Para ayudarte gratis","Para hablar contigo a cualquier hora con mensajes convincentes y que sigas metiendo dinero","Para avisarte de que es una estafa","Para devolverte el dinero"], correct:1,
+          explain:"La IA permite atender a miles de víctimas a la vez, sin cansarse y en cualquier idioma. Que te contesten rápido y con amabilidad no garantiza nada." },
+        { id:'7-13', s:7, type:'tf', q:"Las estafas románticas pueden usar fotos y vídeos, hechos con IA, de personas que no existen.", correct:true,
+          explain:"REALIDAD. Perfiles perfectos con caras que no existen. Si alguien a quien no has visto en persona te pide dinero, para." },
+        { id:'7-14', s:7, type:'mcq', lbl:'¿QUÉ HARÍAS?', q:"Te llega un vídeo impactante de un suceso y no sabes si es real. Antes de reenviarlo...", a:["Lo mando rápido a todos los grupos","Busco si medios fiables lo han publicado y de dónde sale","Le añado un comentario","Lo subo a más redes"], correct:1,
+          explain:"Los bulos hechos con IA viven de los reenvíos. Busca el origen (búsqueda inversa de imágenes, medios fiables) y, si no está claro, no lo reenvíes." },
+        { id:'7-15', s:7, type:'mcq', q:"¿Qué es el 'vishing'?", a:["Pescar con ayuda de IA","Una estafa por llamada de voz para sacarte datos o dinero","Un virus que va en los vídeos","Una red social"], correct:1,
+          explain:"Phishing por voz (voice + phishing). Con voces clonadas o sintéticas, el gancho es mucho más creíble." },
+        { id:'7-16', s:7, type:'tf', q:"Tu banco nunca te pedirá tus claves completas ni el PIN por teléfono, SMS o chat.", correct:true,
+          explain:"REALIDAD. Si te las piden, es estafa, suene como suene la voz y por muy oficial que parezca el mensaje." }
     ];
 
     /* ==================== NIVELES ==================== */
@@ -278,51 +474,268 @@
         { n:3, icon:'🕵️', name:'¿IA o Humano?',       sub:'Detecta textos escritos por IA' },
         { n:4, icon:'👻', name:'Caza la alucinación', sub:'Pilla el dato inventado' },
         { n:5, icon:'✍️', name:'El arte de preguntar',sub:'Prompts que sí funcionan' },
-        { n:6, icon:'🧠', name:'Nivel experto',        sub:'Conceptos que impresionan' }
+        { n:6, icon:'🧠', name:'Nivel experto',        sub:'Conceptos que impresionan' },
+        { n:7, icon:'🚨', name:'Estafas con IA',       sub:'Voces clonadas, deepfakes y timos', isNew:true }
     ];
     const MAXSTAGE = STAGES.length;
-    const PASS = 0.6; // % de aciertos para desbloquear el siguiente
+    const PASS = 0.6;   // % de aciertos para desbloquear el siguiente
+    const PLAY_N = 8;   // preguntas por partida de nivel (salen de un banco mayor)
     const TYPE_LABEL = { mcq:'ELIGE LA CORRECTA', tf:'¿MITO O REALIDAD?', iah:'¿IA O HUMANO?', fake:'CAZA LA ALUCINACIÓN' };
+    const SITE = 'https://onefrai.github.io/QUIZ-GUARD-IA/';
+
+    /* Reto del día: 5 preguntas iguales para todos, de fácil a difícil.
+       Cada hueco tira de su bolsa; la bolsa se recorre entera antes de repetir. */
+    const DAILY_EPOCH = '2026-10-03';   // día del Reto #1 (hora de Madrid)
+    const DAILY_SLOTS = [ {lv:[1,2], k:2}, {lv:[3,4], k:1}, {lv:[5,7], k:1}, {lv:[6], k:1} ];
+    const DAILY_N = DAILY_SLOTS.reduce((t,s)=>t+s.k,0);
 
     const stageTotal = {};
-    STAGES.forEach(s => stageTotal[s.n] = BANK.filter(x=>x.s===s.n).length);
+    STAGES.forEach(s => stageTotal[s.n] = Math.min(PLAY_N, BANK.filter(x=>x.s===s.n).length));
 
     /* ==================== ESTADO ==================== */
     let queue = [], idx = 0, correctCount = 0, streak = 0, maxStreak = 0, answered = false, curStage = 1;
+    let mode = 'route', dKey = null, dNum = 0, dSaved = null, qStart = 0, cdKey = null;
 
     /* ==================== PERSISTENCIA ==================== */
-    function getUnlocked(){ return parseInt(localStorage.getItem('guardia_unlocked')) || 1; }
-    function setUnlocked(v){ localStorage.setItem('guardia_unlocked', v); }
-    function getBest(n){ const v = localStorage.getItem('guardia_best_'+n); return v===null?null:parseInt(v); }
-    function setBest(n,v){ const p=getBest(n); if(p===null||v>p) localStorage.setItem('guardia_best_'+n, v); }
+    // localStorage puede fallar (modo privado, bloqueado): el juego sigue funcionando sin guardar
+    function sget(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+    function sset(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+    function sdel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+    function jget(k,def){ try{ const v=sget(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
+    function jset(k,v){ sset(k,JSON.stringify(v)); }
+
+    function getUnlocked(){ return parseInt(sget('guardia_unlocked')) || 1; }
+    function setUnlocked(v){ sset('guardia_unlocked', v); }
+    function getBest(n){ const v=sget('gq_best_'+n); return v===null?null:parseInt(v); }
+    function setBest(n,v){ const p=getBest(n); if(p===null||v>p) sset('gq_best_'+n, v); }
+    function markSeen(id){ const s=jget('gq_seen',[]); if(!s.includes(id)){ s.push(id); jset('gq_seen',s); } }
+    // v1 guardaba el récord sobre el total fijo de cada nivel; ahora es sobre PLAY_N
+    function migrate(){
+        if(sget('gq_v')) return;
+        const OLD={1:6,2:10,3:8,4:5,5:5,6:6};
+        for(const n in OLD){ const v=sget('guardia_best_'+n); if(v!==null) sset('gq_best_'+n, Math.round(parseInt(v)/OLD[n]*stageTotal[n])); }
+        sset('gq_v','2');
+    }
     function resetProgress(){
-        if(confirm('¿Reiniciar tu ruta y empezar desde el Nivel 1?')){
-            for(let i=1;i<=MAXSTAGE;i++) localStorage.removeItem('guardia_best_'+i);
-            setUnlocked(1); renderPath();
+        if(confirm('¿Reiniciar tu ruta y empezar desde el Nivel 1? (El reto del día y tu racha no se tocan.)')){
+            for(let i=1;i<=MAXSTAGE;i++){ sdel('gq_best_'+i); sdel('guardia_best_'+i); }
+            sdel('gq_seen'); setUnlocked(1); renderPath();
         }
     }
 
     /* ==================== AUDIO ==================== */
-    let audioCtx;
-    function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
-    function playSound(type){
-        if(!audioCtx) return;
+    let audioCtx, muted = sget('gq_mute')==='1';
+    function initAudio(){ if(muted) return; if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+    function toggleMute(){ muted=!muted; sset('gq_mute', muted?'1':'0'); el('btn-mute').textContent=muted?'🔇':'🔊'; if(!muted){ initAudio(); playSound('click'); } }
+    function tone(type,steps,vol,dur,ramp){
         const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination); const now=audioCtx.currentTime;
-        if(type==='click'){ osc.type='sine'; osc.frequency.setValueAtTime(600,now); gain.gain.setValueAtTime(0.08,now); gain.gain.exponentialRampToValueAtTime(0.01,now+0.1); osc.start(now); osc.stop(now+0.1); }
-        else if(type==='correct'){ osc.type='square'; osc.frequency.setValueAtTime(800,now); osc.frequency.setValueAtTime(1200,now+0.1); gain.gain.setValueAtTime(0.05,now); gain.gain.linearRampToValueAtTime(0,now+0.2); osc.start(now); osc.stop(now+0.2); }
-        else if(type==='wrong'){ osc.type='sawtooth'; osc.frequency.setValueAtTime(160,now); osc.frequency.exponentialRampToValueAtTime(55,now+0.4); gain.gain.setValueAtTime(0.09,now); gain.gain.linearRampToValueAtTime(0,now+0.4); osc.start(now); osc.stop(now+0.4); }
-        else if(type==='streak'){ osc.type='triangle'; osc.frequency.setValueAtTime(700,now); osc.frequency.setValueAtTime(1000,now+0.08); osc.frequency.setValueAtTime(1400,now+0.16); gain.gain.setValueAtTime(0.06,now); gain.gain.linearRampToValueAtTime(0,now+0.28); osc.start(now); osc.stop(now+0.28); }
+        osc.type=type; steps.forEach(([f,t])=>osc.frequency.setValueAtTime(f,now+t));
+        gain.gain.setValueAtTime(vol,now);
+        if(ramp==='exp') gain.gain.exponentialRampToValueAtTime(0.01,now+dur); else gain.gain.linearRampToValueAtTime(0,now+dur);
+        osc.start(now); osc.stop(now+dur);
+    }
+    function playSound(type){
+        if(muted||!audioCtx) return;
+        if(type==='click') tone('sine',[[600,0]],0.08,0.1,'exp');
+        else if(type==='correct') tone('square',[[800,0],[1200,0.1]],0.05,0.2);
+        else if(type==='wrong'){ const o=audioCtx.createOscillator(), g=audioCtx.createGain(), now=audioCtx.currentTime; o.connect(g); g.connect(audioCtx.destination); o.type='sawtooth'; o.frequency.setValueAtTime(160,now); o.frequency.exponentialRampToValueAtTime(55,now+0.4); g.gain.setValueAtTime(0.09,now); g.gain.linearRampToValueAtTime(0,now+0.4); o.start(now); o.stop(now+0.4); }
+        else if(type==='streak') tone('triangle',[[700,0],[1000,0.08],[1400,0.16]],0.06,0.28);
+        else if(type==='fanfare') tone('square',[[523,0],[659,0.12],[784,0.24],[1047,0.36]],0.05,0.6);
     }
 
     /* ==================== UTILS ==================== */
-    function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function shuffle(a,rand=Math.random){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(rand()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } h^=h>>>16; h=Math.imul(h,0x85ebca6b); h^=h>>>13; h=Math.imul(h,0xc2b2ae35); h^=h>>>16; return h>>>0; }
+    function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
     function el(id){ return document.getElementById(id); }
     function show(id){ el(id).classList.remove('hidden'); }
     function hide(id){ el(id).classList.add('hidden'); }
+    function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    function pad(n){ return String(n).padStart(2,'0'); }
     function stars(pct){ return pct>=0.9?'★★★':pct>=0.75?'★★☆':'★☆☆'; }
+    function fmtTime(t){ t=Math.round(t); return t<60 ? t+' s' : Math.floor(t/60)+':'+pad(t%60); }
+    function showScreen(id){
+        ['home-screen','game-screen','result-screen','daily-screen'].forEach(hide); show(id);
+        el('game-container').classList.toggle('in-game', id!=='home-screen');
+        window.scrollTo(0,0);
+    }
+    let toastTimer;
+    function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600); }
 
-    /* ==================== RUTA (home) ==================== */
+    /* ==================== FECHAS (hora de Madrid) ==================== */
+    function madridParts(){
+        try{
+            const o={}; new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'})
+                .formatToParts(new Date()).forEach(p=>o[p.type]=p.value);
+            return o;
+        }catch(e){
+            const d=new Date();
+            return { year:''+d.getFullYear(), month:pad(d.getMonth()+1), day:pad(d.getDate()), hour:''+d.getHours(), minute:''+d.getMinutes(), second:''+d.getSeconds() };
+        }
+    }
+    function todayKey(){ const p=madridParts(); return p.year+'-'+p.month+'-'+p.day; }
+    function secsToNext(){ const p=madridParts(); return 86400-((+p.hour%24)*3600+(+p.minute)*60+(+p.second)); }
+    function keyUTC(k){ const [y,m,d]=k.split('-').map(Number); return Date.UTC(y,m-1,d); }
+    function shiftKey(k,days){ const x=new Date(keyUTC(k)+days*864e5); return x.getUTCFullYear()+'-'+pad(x.getUTCMonth()+1)+'-'+pad(x.getUTCDate()); }
+    function dayNum(k){ return Math.max(1, Math.round((keyUTC(k)-keyUTC(DAILY_EPOCH))/864e5)+1); }
+    function prettyDay(k){ try{ return new Intl.DateTimeFormat('es-ES',{timeZone:'UTC',weekday:'short',day:'numeric',month:'short'}).format(new Date(keyUTC(k))); }catch(e){ return k; } }
+
+    /* ==================== RETO DEL DÍA ==================== */
+    const slotCache = {};
+    function slotPer(si){ const sl=DAILY_SLOTS[si]; return Math.max(1,Math.floor(BANK.filter(c=>sl.lv.includes(c.s)).length/sl.k)); }
+    function slotOrder(si,cyc){
+        const ck=si+'|'+cyc; if(slotCache[ck]) return slotCache[ck];
+        const sl=DAILY_SLOTS[si], pool=BANK.filter(c=>sl.lv.includes(c.s)), per=slotPer(si), salt='gq'+si+'|'+cyc+'|';
+        let ord=pool.map(c=>[hash(salt+c.id),c]).sort((a,b)=>a[0]-b[0]||(a[1].id<b[1].id?-1:1)).map(x=>x[1]);
+        if(cyc>0){ // el primer día de una vuelta no repite lo del último día de la anterior
+            const prev=slotOrder(si,cyc-1).slice((per-1)*sl.k, per*sl.k).map(c=>c.id);
+            const moved=ord.slice(0,sl.k).filter(c=>prev.includes(c.id));
+            if(moved.length){ ord=ord.filter(c=>!moved.includes(c)); ord.splice(per*sl.k-moved.length,0,...moved); }
+        }
+        return slotCache[ck]=ord;
+    }
+    function dailyCards(n){
+        const i=n-1, out=[];
+        DAILY_SLOTS.forEach((sl,si)=>{
+            const per=slotPer(si), pos=(i%per)*sl.k;
+            out.push(...slotOrder(si,Math.floor(i/per)).slice(pos,pos+sl.k));
+        });
+        return out;
+    }
+    const DSTATS_DEF = { played:0, streak:0, best:0, last:null, dist:[0,0,0,0,0,0], hits:0 };
+    function dStats(){ const s=Object.assign({},DSTATS_DEF,jget('gq_dstats',{})); s.dist=Array.isArray(s.dist)?s.dist.slice():DSTATS_DEF.dist.slice(); return s; }
+    function currentStreak(){ const s=dStats(), k=todayKey(); return (s.last===k||s.last===shiftKey(k,-1)) ? s.streak : 0; }
+    function dScore(sv){ return sv.res.filter(Boolean).length; }
+    function squaresHTML(res,cls){ return res.map(r=>'<span class="sq '+cls+' '+(r?'ok':'ko')+'"></span>').join(''); }
+
+    function startDaily(){
+        initAudio(); playSound('click');
+        mode='daily'; dKey=todayKey(); dNum=dayNum(dKey);
+        dSaved=jget('gq_d_'+dKey,null) || { res:[], t:0, done:false };
+        if(dSaved.done){ showDailyResult(false); return; }
+        queue=dailyCards(dNum); idx=dSaved.res.length; correctCount=dScore(dSaved); streak=0; maxStreak=0;
+        if(idx>=queue.length){ finishDaily(); return; }
+        showScreen('game-screen'); el('btn-quit').textContent='Salir (tu avance se guarda)';
+        renderCard();
+    }
+    function finishDaily(){
+        dSaved.done=true; jset('gq_d_'+dKey,dSaved);
+        const st=dStats();
+        if(st.last!==dKey){
+            st.streak = st.last===shiftKey(dKey,-1) ? st.streak+1 : 1;
+            st.best=Math.max(st.best,st.streak); st.played++;
+            const sc=dScore(dSaved); st.dist[sc]=(st.dist[sc]||0)+1; st.hits+=sc; st.last=dKey;
+            jset('gq_dstats',st);
+        }
+        showDailyResult(true);
+    }
+    function showDailyResult(fresh){
+        const key = (fresh||dKey) ? dKey : todayKey();
+        const sv=jget('gq_d_'+key,null); if(!sv||!sv.done){ goHome(); return; }
+        dKey=key; dNum=dayNum(key); cdKey=todayKey();
+        const sc=dScore(sv), tot=sv.res.length;
+        showScreen('daily-screen');
+        el('d-head').textContent='📅 RETO #'+dNum+' · '+prettyDay(key);
+        const R = sc===tot ? ['🏆','¡PLENO!','Cinco de cinco. Compártelo y a ver quién te iguala.']
+                : sc===tot-1 ? ['🥷','MUY FINO','Solo se te escapó una. Repasa abajo cuál fue.']
+                : sc>=3 ? ['🤖','APROBADO','Bien resuelto. Mira abajo las que fallaste.']
+                : sc===2 ? ['🔍','A MEDIAS','Repasa las explicaciones: mañana, revancha.']
+                : ['🌱','MAÑANA, REVANCHA','Hoy tocaba difícil. Las explicaciones de abajo te preparan para el siguiente.'];
+        el('d-emoji').textContent=R[0]; el('d-title').textContent=R[1]; el('d-tip').textContent=R[2];
+        el('d-squares').innerHTML=sv.res.map((r,i)=>'<span class="sq '+(r?'ok':'ko')+' pop" style="animation-delay:'+(i*0.12)+'s"></span>').join('');
+        el('d-score').textContent=sc+'/'+tot; el('d-time').textContent='⏱ '+fmtTime(sv.t);
+        el('d-share').innerHTML = canNativeShare() ? '📤 COMPARTIR RESULTADO' : '📋 COPIAR RESULTADO';
+
+        const st=dStats(), pct=st.played?Math.round(st.hits/(st.played*DAILY_N)*100):0;
+        el('d-stats').innerHTML=[['Jugados',st.played],['Aciertos',pct+'%'],['Racha 🔥',currentStreak()],['Mejor racha',st.best]]
+            .map(([l,v])=>'<div class="stat-tile"><div class="text-lg font-bold text-white">'+v+'</div><div class="text-[9px] uppercase opacity-60 leading-tight">'+l+'</div></div>').join('');
+        const mx=Math.max(1,...st.dist);
+        let dist=''; for(let s=DAILY_N;s>=0;s--){ const c=st.dist[s]||0;
+            dist+='<div class="flex items-center gap-2 text-[11px]"><span class="w-8 text-right opacity-70">'+s+'/'+DAILY_N+'</span><div class="flex-grow"><div class="dist-bar'+(s===sc?' me':'')+'" style="width:'+Math.max(6,c/mx*100)+'%">'+c+'</div></div></div>'; }
+        el('d-dist').innerHTML=dist;
+
+        const cards=dailyCards(dNum);
+        el('d-review').innerHTML=cards.map((c,i)=>{
+            const ok=!!sv.res[i];
+            return '<div class="border-l-2 '+(ok?'border-green-500':'border-red-500')+' pl-3 pt-1">'+
+                '<p class="text-[10px] uppercase tracking-wider opacity-60">'+(i+1)+' · '+(c.lbl||TYPE_LABEL[c.type])+' · '+(ok?'<span class="text-green-400">✔ acertaste</span>':'<span class="text-red-400">✘ fallaste</span>')+'</p>'+
+                '<p class="font-bold leading-snug mt-0.5">'+esc(cardPrompt(c))+'</p>'+
+                '<p class="text-green-300 text-xs mt-1">→ '+esc(answerText(c))+'</p>'+
+                '<p class="text-xs opacity-80 mt-1 leading-relaxed" style="color:#ffe6a3">'+esc(c.explain)+'</p></div>';
+        }).join('');
+        tick();
+        if(fresh){
+            if(sc>=tot-1){ playSound('fanfare'); setTimeout(()=>confetti({particleCount:160,spread:85,origin:{y:0.6},colors:['#00ff41','#ffc400','#ffffff'],disableForReducedMotion:true}),300); }
+            else if(sc<=1) playSound('wrong');
+        }
+    }
+    function cardPrompt(c){ return c.type==='fake' ? 'La frase inventada sobre '+c.topic : c.type==='iah' ? '“'+c.q+'”' : c.q; }
+    function answerText(c){
+        if(c.type==='tf') return c.correct?'REALIDAD':'MITO';
+        if(c.type==='iah') return c.correct==='ia'?'Lo escribió una IA':'Lo escribió un humano';
+        return c.a[c.correct];
+    }
+    function dailyShareText(){
+        const sv=jget('gq_d_'+dKey,{res:[],t:0}), strk=currentStreak();
+        return '🛡️ QUIZ GUARD-IA · Reto #'+dNum+'\n'+
+            sv.res.map(r=>r?'🟩':'🟥').join('')+'  '+dScore(sv)+'/'+sv.res.length+' · ⏱ '+fmtTime(sv.t)+
+            (strk>=2?'\n🔥 Racha: '+strk+' días':'')+'\n'+SITE;
+    }
+    function shareDaily(){ shareText(dailyShareText()); }
+
+    /* ==================== COMPARTIR ==================== */
+    function canNativeShare(){ return !!navigator.share && !!(window.matchMedia && matchMedia('(pointer:coarse)').matches); }
+    async function shareText(text){
+        initAudio(); playSound('click');
+        if(canNativeShare()){
+            try{ await navigator.share({ text }); return; }
+            catch(e){ if(e && e.name==='AbortError') return; }
+        }
+        copyText(text);
+    }
+    function copyText(text){
+        const ok=()=>toast('Copiado ✔ Pégalo en Telegram'), ko=()=>toast('No se pudo copiar');
+        const legacy=()=>{ const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); let r=false; try{ r=document.execCommand('copy'); }catch(e){} ta.remove(); return r; };
+        if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok,()=>legacy()?ok():ko());
+        else legacy()?ok():ko();
+    }
+
+    /* ==================== HOME ==================== */
+    function renderHome(){ cdKey=todayKey(); renderDailyCard(); renderPath(); tick(); }
+    function renderDailyCard(){
+        const key=todayKey(), n=dayNum(key), sv=jget('gq_d_'+key,null), strk=currentStreak();
+        let h='<div class="flex items-center justify-between gap-2">'+
+              '<span class="text-xs sm:text-sm font-bold uppercase tracking-widest text-yellow-300">📅 Reto del día #'+n+'</span>'+
+              (strk>0?'<span class="text-xs font-bold text-yellow-300 whitespace-nowrap">🔥 '+strk+(strk===1?' día':' días')+'</span>':'<span class="text-[10px] opacity-60 whitespace-nowrap">'+prettyDay(key)+'</span>')+
+              '</div>';
+        if(sv && sv.done){
+            h+='<div class="flex items-center gap-3 flex-wrap"><div class="flex gap-1.5">'+squaresHTML(sv.res,'sm')+'</div>'+
+               '<span class="font-bold text-white">'+dScore(sv)+'/'+sv.res.length+'</span><span class="text-xs opacity-70">⏱ '+fmtTime(sv.t)+'</span></div>'+
+               '<p class="text-xs opacity-80">Hecho por hoy. Próximo reto en <span class="cd font-bold text-yellow-300">--:--:--</span></p>'+
+               '<div class="grid grid-cols-2 gap-2"><button onclick="dKey=todayKey();dNum=dayNum(dKey);shareDaily()" class="amber-btn px-3 py-2.5 rounded-lg text-xs">'+(canNativeShare()?'📤 COMPARTIR':'📋 COPIAR')+'</button>'+
+               '<button onclick="dKey=todayKey();showDailyResult(false)" class="matrix-btn px-3 py-2.5 rounded-lg text-xs font-bold">VER DETALLE</button></div>';
+        } else if(sv && sv.res.length){
+            h+='<p class="text-sm">Lo dejaste a medias: <span class="font-bold text-white">'+sv.res.length+'/'+DAILY_N+'</span> respondidas.</p>'+
+               '<button onclick="startDaily()" class="amber-btn w-full px-4 py-3 rounded-lg text-sm">CONTINUAR EL RETO ▶</button>';
+        } else {
+            h+='<p class="text-sm leading-snug">'+DAILY_N+' preguntas, <span class="text-white font-bold">las mismas para todos hoy</span>. Al acabar, comparte tu resultado en Telegram.</p>'+
+               '<button onclick="startDaily()" class="amber-btn w-full px-4 py-3 rounded-lg text-sm">JUGAR EL RETO ▶</button>';
+        }
+        el('daily-card').innerHTML=h;
+    }
+    function tick(){
+        const k=todayKey();
+        if(cdKey && k!==cdKey){
+            if(!el('home-screen').classList.contains('hidden')){ renderHome(); return; }
+            document.querySelectorAll('.cd').forEach(e=>e.textContent='¡ya disponible!');
+            return;
+        }
+        const s=secsToNext(), txt=pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60);
+        document.querySelectorAll('.cd').forEach(e=>e.textContent=txt);
+    }
+
+    /* ==================== RUTA ==================== */
     function renderPath(){
         const wrap = el('path-list'); wrap.innerHTML='';
         const unlocked = getUnlocked();
@@ -332,10 +745,10 @@
         if (unlocked > MAXSTAGE){
             const crown = document.createElement('div');
             crown.className='text-center py-2 text-yellow-400 font-bold text-sm pop';
-            crown.innerHTML='👑 ¡RUTA COMPLETADA! Eres experto en IA. Repite niveles para pulir tu puntuación.';
+            crown.innerHTML='👑 ¡RUTA COMPLETADA! Repite niveles: cada partida saca preguntas distintas.';
             wrap.appendChild(crown);
         }
-        // Nivel 1 arriba, Nivel 6 abajo
+        // Nivel 1 arriba, Nivel 7 abajo
         for(let i=0;i<STAGES.length;i++){
             const st=STAGES[i], n=st.n, total=stageTotal[n], best=getBest(n);
             const state = n<unlocked ? 'done' : (n===unlocked ? 'current' : 'locked');
@@ -345,14 +758,15 @@
 
             let badge;
             if(state==='locked') badge='<span class="text-lg">🔒</span>';
-            else if(state==='done') badge='<span class="text-yellow-400 text-sm font-bold whitespace-nowrap">'+stars(best/total)+'<br><span class="text-green-400 text-[10px]">'+best+'/'+total+'</span></span>';
+            else if(state==='done') badge='<span class="text-yellow-400 text-sm font-bold whitespace-nowrap">'+stars((best||0)/total)+'<br><span class="text-green-400 text-[10px]">'+(best||0)+'/'+total+'</span></span>';
             else badge='<span class="matrix-btn px-3 py-1.5 rounded text-[11px] font-bold whitespace-nowrap">'+(best===null?'EMPEZAR ▶':'SEGUIR ▶')+'</span>';
+            const chip = st.isNew && best===null ? '<span class="chip-new">NUEVO</span>' : '';
 
             row.innerHTML =
                 '<span class="node-num text-center"><span class="text-2xl">'+st.icon+'</span></span>'+
                 '<span class="flex-grow min-w-0">'+
-                    '<span class="block text-sm sm:text-base font-bold '+(state==='locked'?'':'glow-text')+' truncate">Nivel '+n+' · '+st.name+'</span>'+
-                    '<span class="block text-[11px] sm:text-xs opacity-70 truncate">'+st.sub+' · '+total+' preguntas</span>'+
+                    '<span class="block text-sm sm:text-base font-bold leading-snug '+(state==='locked'?'':'glow-text')+'">Nivel '+n+' · '+st.name+'</span>'+
+                    '<span class="block text-[11px] sm:text-xs opacity-70 leading-snug mt-0.5">'+chip+st.sub+' · '+total+' preguntas</span>'+
                 '</span>'+
                 '<span class="flex-shrink-0 text-right">'+badge+'</span>';
             wrap.appendChild(row);
@@ -362,10 +776,13 @@
     /* ==================== PARTIDA ==================== */
     function startStage(n){
         initAudio(); playSound('click');
-        curStage=n;
-        queue = shuffle(BANK.filter(x=>x.s===n));
+        mode='route'; curStage=n;
+        // primero las que aún no has visto, para que repetir un nivel no sea lo mismo
+        const pool=BANK.filter(x=>x.s===n), seen=jget('gq_seen',[]);
+        queue = shuffle(pool.filter(c=>!seen.includes(c.id))).concat(shuffle(pool.filter(c=>seen.includes(c.id)))).slice(0,PLAY_N);
+        queue = shuffle(queue);
         idx=0; correctCount=0; streak=0; maxStreak=0;
-        hide('home-screen'); hide('result-screen'); show('game-screen');
+        showScreen('game-screen'); el('btn-quit').textContent='Volver a la ruta';
         renderCard();
     }
     function replay(){ startStage(curStage); }
@@ -379,12 +796,12 @@
     }
 
     function renderCard(){
-        answered=false;
+        answered=false; qStart=performance.now();
         const card=queue[idx];
-        const st=STAGES.find(s=>s.n===curStage);
         updateHud();
-        el('stage-label').textContent='N'+curStage+' '+st.icon;
-        el('type-label').textContent=TYPE_LABEL[card.type];
+        if(mode==='daily') el('stage-label').textContent='📅 RETO #'+dNum;
+        else { const st=STAGES.find(s=>s.n===curStage); el('stage-label').textContent='N'+curStage+' '+st.icon; }
+        el('type-label').textContent=card.lbl||TYPE_LABEL[card.type];
         hide('explain-area'); hide('btn-continue');
         el('game-container').classList.remove('shake','flash-red');
         const area=el('card-area'); area.innerHTML='';
@@ -394,6 +811,8 @@
         else if(card.type==='fake') renderFake(card,area);
     }
 
+    // En el reto el orden de opciones es fijo por día (todos ven lo mismo); en la ruta, al azar
+    function optionOrder(card){ const o=card.a.map((_,i)=>i); return mode==='daily' ? shuffle(o,rng(hash(dKey+'|'+card.id))) : shuffle(o); }
     function optionButton(text){
         const b=document.createElement('button');
         b.className='matrix-btn w-full p-3.5 rounded-lg text-left text-sm font-medium fade-up';
@@ -404,12 +823,15 @@
         h.className='text-base sm:text-xl font-bold leading-snug border-l-2 border-green-500 pl-3 mb-3';
         h.innerHTML=text; return h;
     }
+    function renderOptions(card,grid){
+        const btns=[], order=optionOrder(card), ci=order.indexOf(card.correct);
+        order.forEach(oi=>{ const b=optionButton(card.a[oi]); b.onclick=()=>resolveChoice(oi===card.correct,card,btns,b,ci); btns.push(b); grid.appendChild(b); });
+    }
 
     function renderMCQ(card,area){
         area.appendChild(questionHeading('&gt; '+card.q));
         const grid=document.createElement('div'); grid.className='grid grid-cols-1 sm:grid-cols-2 gap-2.5';
-        const btns=[];
-        card.a.forEach((opt,i)=>{ const b=optionButton(opt); b.onclick=()=>resolveChoice(i===card.correct,card,btns,b,card.correct); btns.push(b); grid.appendChild(b); });
+        renderOptions(card,grid);
         area.appendChild(grid);
     }
     function renderTF(card,area){
@@ -434,8 +856,7 @@
     function renderFake(card,area){
         area.appendChild(questionHeading('Una IA afirma esto sobre <span class="text-white">'+card.topic+'</span>. Una frase es <span class="text-red-400">INVENTADA</span> 👻 ¿cuál?'));
         const grid=document.createElement('div'); grid.className='grid grid-cols-1 gap-2.5';
-        const btns=[];
-        card.a.forEach((opt,i)=>{ const b=optionButton(opt); b.onclick=()=>resolveChoice(i===card.correct,card,btns,b,card.correct); btns.push(b); grid.appendChild(b); });
+        renderOptions(card,grid);
         area.appendChild(grid);
     }
 
@@ -453,6 +874,12 @@
             streak=0;
             const c=el('game-container'); c.classList.remove('shake','flash-red'); void c.offsetWidth; c.classList.add('shake','flash-red');
         }
+        markSeen(card.id);
+        if(mode==='daily'){
+            dSaved.res.push(isCorrect?1:0);
+            dSaved.t=Math.round((dSaved.t+Math.min(90,(performance.now()-qStart)/1000))*10)/10;
+            jset('gq_d_'+dKey,dSaved);
+        }
         el('score-display').textContent=correctCount;
         el('streak-display').textContent= streak>=2 ? ('🔥x'+streak) : '';
         const ex=el('explain-area');
@@ -461,11 +888,11 @@
         setTimeout(()=>ex.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
         const cont=el('btn-continue'); cont.textContent=(idx===queue.length-1)?'VER RESULTADO 🏁':'SIGUIENTE >>'; show('btn-continue');
     }
-    function nextCard(){ playSound('click'); if(idx<queue.length-1){ idx++; renderCard(); } else showResults(); }
+    function nextCard(){ playSound('click'); if(idx<queue.length-1){ idx++; renderCard(); } else if(mode==='daily') finishDaily(); else showResults(); }
 
-    /* ==================== RESULTADO ==================== */
+    /* ==================== RESULTADO DE NIVEL ==================== */
     function showResults(){
-        hide('game-screen'); show('result-screen');
+        showScreen('result-screen');
         const total=queue.length, pct=correctCount/total;
         el('result-score').textContent=correctCount+'/'+total;
         el('progress-fill').style.width='100%';
@@ -480,7 +907,7 @@
         let emoji,rank,tip;
         if(pct>=0.9){ emoji='🥷'; rank='PROMPT NINJA'; tip='Dominas este nivel. Ahora explícaselo a un compañero: enseñar es la mejor forma de rematar lo aprendido.'; }
         else if(pct>=0.75){ emoji='🤖'; rank='DOMADOR DE IAs'; tip='Muy buen nivel. Repasa las explicaciones de los fallos y a por el siguiente.'; }
-        else if(passed){ emoji='🔍'; rank='CURIOSO DIGITAL'; tip='¡Aprobado! Vas entendiendo la IA. Repite para pulir la nota o sigue subiendo.'; }
+        else if(passed){ emoji='🔍'; rank='CURIOSO DIGITAL'; tip='¡Aprobado! Vas entendiendo la IA. Repite para pulir la nota (salen preguntas distintas) o sigue subiendo.'; }
         else { emoji='🌱'; rank='CASI'; tip='Te ha faltado poco. Lee las explicaciones e inténtalo otra vez: se desbloquea con '+Math.ceil(PASS*total)+'/'+total+' aciertos.'; }
 
         el('result-emoji').textContent=emoji;
@@ -490,13 +917,18 @@
 
         const nextBtn=el('btn-next-stage');
         if(passed && curStage<MAXSTAGE){ nextBtn.classList.remove('hidden'); } else nextBtn.classList.add('hidden');
+        el('btn-share-stage').classList.toggle('hidden', !passed);
 
         if(pct>=0.75) setTimeout(()=>confetti({particleCount:160,spread:85,origin:{y:0.6},colors:['#00ff41','#004400','#ffffff','#ffff66'],disableForReducedMotion:true}),250);
-        else playSound('wrong');
+        else if(!passed) playSound('wrong');
+    }
+    function shareStage(){
+        const st=STAGES.find(s=>s.n===curStage);
+        shareText('🛡️ QUIZ GUARD-IA\nNivel '+st.n+' · '+st.name+' '+stars(correctCount/queue.length)+' ('+correctCount+'/'+queue.length+')\n'+SITE);
     }
 
     /* ==================== NAV ==================== */
-    function goHome(){ playSound('click'); hide('game-screen'); hide('result-screen'); show('home-screen'); renderPath(); }
+    function goHome(){ playSound('click'); showScreen('home-screen'); renderHome(); }
 
     /* ==================== TECLADO (PC) ==================== */
     document.addEventListener('keydown', e => {
@@ -516,13 +948,19 @@
     const fontSize=14; let rainDrops=[];
     function initMatrix(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; const cols=Math.floor(canvas.width/fontSize); rainDrops=Array.from({length:cols}).fill(1); }
     function drawMatrix(){
+        if(document.hidden) return;
         mctx.fillStyle='rgba(0,0,0,0.05)'; mctx.fillRect(0,0,canvas.width,canvas.height);
         mctx.fillStyle='#0F0'; mctx.font=fontSize+'px monospace';
         for(let i=0;i<rainDrops.length;i++){ const t=chars.charAt(Math.floor(Math.random()*chars.length)); mctx.fillText(t,i*fontSize,rainDrops[i]*fontSize); if(rainDrops[i]*fontSize>canvas.height&&Math.random()>0.975) rainDrops[i]=0; rainDrops[i]++; }
     }
 
     /* ==================== INIT ==================== */
-    window.onload=()=>{ initMatrix(); setInterval(drawMatrix,55); renderPath(); };
+    window.onload=()=>{
+        migrate();
+        el('btn-mute').textContent=muted?'🔇':'🔊';
+        initMatrix(); setInterval(drawMatrix,55);
+        renderHome(); setInterval(tick,1000);
+    };
     window.onresize=initMatrix;
     </script>
 </body>
