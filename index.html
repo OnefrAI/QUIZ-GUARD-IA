@@ -4,15 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
+    <script>
+        // El quiz vive en guard-ia.es/quiz: la copia de GitHub Pages solo redirige
+        // (el progreso y la racha se guardan por dominio y no deben partirse en dos).
+        if (/github\.io$/.test(location.hostname)) location.replace('https://guard-ia.es/quiz/' + location.search + location.hash);
+    </script>
     <title>GUARD-IA | Quiz IA</title>
     <meta name="description" content="Reto diario de IA: 5 preguntas, las mismas para todos. Comparte tu resultado. Y una ruta de 7 niveles para aprender a tu ritmo.">
     <link rel="icon" type="image/png" href="logo-512.png">
     <meta property="og:title" content="QUIZ GUARD-IA · Reto del día">
     <meta property="og:description" content="5 preguntas de IA cada día, las mismas para todos. ¿Cuántas aciertas tú?">
-    <meta property="og:image" content="https://onefrai.github.io/QUIZ-GUARD-IA/og.png">
+    <meta property="og:image" content="https://guard-ia.es/quiz/og.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://onefrai.github.io/QUIZ-GUARD-IA/">
+    <meta property="og:url" content="https://guard-ia.es/quiz/">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -218,7 +223,8 @@
                 </div>
                 <div id="path-list" class="space-y-2.5"></div>
             </div>
-            <div class="text-center pt-1">
+            <div class="text-center pt-1 space-y-2">
+                <a href="https://guard-ia.es/" class="block text-[11px] opacity-60 hover:opacity-100">🛡️ Un proyecto de <span class="glow-text font-bold">GUARD-IA</span>, la app para Fuerzas y Cuerpos de Seguridad →</a>
                 <button onclick="resetProgress()" class="text-[9px] opacity-30 hover:opacity-100 underline border-none bg-transparent">Reiniciar mi ruta</button>
             </div>
         </div>
@@ -566,11 +572,11 @@
     const PASS = 0.6;   // % de aciertos para desbloquear el siguiente
     const PLAY_N = 8;   // preguntas por partida de nivel (salen de un banco mayor)
     const TYPE_LABEL = { mcq:'ELIGE LA CORRECTA', tf:'¿MITO O REALIDAD?', iah:'¿IA O HUMANO?', fake:'CAZA LA ALUCINACIÓN' };
-    const SITE = 'https://onefrai.github.io/QUIZ-GUARD-IA/';
+    const SITE = 'https://guard-ia.es/quiz/';
 
     /* Reto del día: 5 preguntas iguales para todos, de fácil a difícil.
        Cada hueco tira de su bolsa; la bolsa se recorre entera antes de repetir. */
-    const DAILY_EPOCH = '2026-10-03';   // día del Reto #1 (hora de Madrid)
+    const DAILY_EPOCH = '2026-10-05';   // día del Reto #1 (hora de Madrid) = día del anuncio en Telegram
     const DAILY_SLOTS = [ {lv:[1,2], k:2}, {lv:[3,4], k:1}, {lv:[5,7], k:1}, {lv:[6], k:1} ];
     const DAILY_N = DAILY_SLOTS.reduce((t,s)=>t+s.k,0);
 
